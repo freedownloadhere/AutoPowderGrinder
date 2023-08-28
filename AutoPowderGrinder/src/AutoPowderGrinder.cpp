@@ -19,16 +19,13 @@ bool AutoPowderGrinder::initialize()
 
 void AutoPowderGrinder::run()
 {
-	//this->minecraft->player->sendChatMessage("Running!\n");
-	
-	this->minecraft->player->sendChatMessage("§7Items currently in your inventory: ");
-	for (int i = 0; i < 36; ++i)
-	{
-		std::string inventoryItem = this->minecraft->player->getInventoryItem(i);
-		if (inventoryItem != "Air")
-			this->minecraft->player->sendChatMessage("§7> §f" + inventoryItem + "§7 in slot §a" + std::to_string(i) + "    ");
-	}
-	this->minecraft->player->sendChatMessage("\n");
+	int blockID = this->minecraft->world->getBlockID(
+		{ 0, 4, 0 }
+	);
 
-	std::this_thread::sleep_for(std::chrono::seconds(4));
+	this->minecraft->player->sendChatMessage(
+		"\n\n§7The block at position §a0 4 0 §7has the ID §a" + std::to_string(blockID) + "    \n\n"
+	);
+
+	std::this_thread::sleep_for(std::chrono::seconds(3));
 }

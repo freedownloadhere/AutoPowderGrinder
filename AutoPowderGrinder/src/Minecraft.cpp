@@ -32,7 +32,7 @@ bool AutoPowderGrinder::Minecraft::initialize()
 		return false;
 	}
 
-	auto fieldID{ env->GetStaticFieldID(this->mcClass, "S", "Lave;") };
+	jfieldID fieldID{ env->GetStaticFieldID(this->mcClass, "S", "Lave;") };
 	if (fieldID == nullptr)
 	{
 		std::cout << "Failed to get static field ID theMinecraft!\n";
@@ -52,6 +52,16 @@ bool AutoPowderGrinder::Minecraft::initialize()
 		mcClassInstance
 	);
 	if (!this->player->isInitialized())
+	{
+		return false;
+	}
+
+	this->world = std::make_shared<World>(
+		env,
+		mcClass,
+		mcClassInstance
+	);
+	if (!this->world->isInitialized())
 	{
 		return false;
 	}

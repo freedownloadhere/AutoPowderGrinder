@@ -39,19 +39,22 @@ class AutoPowderGrinder::Minecraft
 {
 public:
 	class Player;
+	class World;
 
 	std::shared_ptr<Player> player;
+	std::shared_ptr<World> world;
 
 	Minecraft();
 	bool isInitialized();
 
 private:
+	jclass 
+		mcClass{ nullptr };
+	jobject 
+		mcClassInstance{ nullptr };
 
 	bool initialized{ false };
 	JNIEnv* env{ nullptr };
-	jclass mcClass{ nullptr };
-	jobject mcClassInstance{ nullptr };
-
 	bool initialize();
 };
 
@@ -71,28 +74,75 @@ public:
 
 	bool isInitialized();
 	void sendChatMessage(const std::string& message);
-	std::string getInventoryItem(int slotIndex);
+	void updateMainInventory();
+	void updatePosition();
+	std::string getItem(int index);
+	std::string updateAndGetItem(int index);
 
 private:
-	bool initialized{ false };
 	Position position{ 0 };
-	void* inventory{ nullptr };
+	std::string inventory[36] = {};
 
-	jclass EntityPlayerSPClass{ nullptr };
-	jclass InventoryPlayerClass{ nullptr };
-	jobject mcThePlayerInstance{ nullptr };
-	jobject inventoryInstance{ nullptr };
-	jobjectArray mainInventoryArray{ nullptr };
-	jclass itemStackClass{ nullptr };
+	jclass 
+		EntityPlayerSPClass{ nullptr },
+		InventoryPlayerClass{ nullptr },
+		itemStackClass{ nullptr },
+		chatCompClass{ nullptr };
+	jobject 
+		mcThePlayerInstance{ nullptr },
+		inventoryInstance{ nullptr };
+	jobjectArray 
+		mainInventoryArray{ nullptr };
+	jmethodID 
+		addChatMessage{ nullptr },
+		messageConstructor{ nullptr },
+		displayNameGetter{ nullptr };
+	jfieldID
+		positionX{ nullptr },
+		positionY{ nullptr },
+		positionZ{ nullptr };
+
+	// TODO Blocks around player
+
+	bool initialized{ false };
 	JNIEnv* env{ nullptr };
-
-	// Blocks around player
-
 	bool initialize(
 		JNIEnv* env,
 		const jclass& mcClass,
 		const jobject& mcClassInstance
 	);
+};
 
-	void refreshPosition();
+class AutoPowderGrinder::Minecraft::World
+{
+public:
+	World(
+		JNIEnv* env,
+		const jclass& mcClass,
+		const jobject& mcClassInstance
+	);
+
+	bool isInitialized();
+	int getBlockID(const Position& pos);
+
+private:
+	jclass 
+		worldClientClass{ nullptr },
+		blockPosClass{ nullptr },
+		blockClass{ nullptr };
+	jmethodID 
+		getBlockState{ nullptr },
+		getBlock{ nullptr },
+		blockPosConstructor{ nullptr },
+		getIDfromBlock{ nullptr };
+	jobject 
+		worldInstance{ nullptr };
+
+	bool initialized{ false };
+	JNIEnv* env{ nullptr };
+	bool initialize(
+		JNIEnv* env,
+		const jclass& mcClass,
+		const jobject& mcClassInstance
+	);
 };

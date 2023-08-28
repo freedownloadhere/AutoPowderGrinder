@@ -29,7 +29,7 @@ bool AutoPowderGrinder::Minecraft::Player::initialize(
 		return false;
 	}
 
-	auto playerFieldID{ this->env->GetFieldID(mcClass, "h", "Lbew;") };
+	jfieldID playerFieldID{ this->env->GetFieldID(mcClass, "h", "Lbew;") };
 	if (playerFieldID == nullptr)
 	{
 		std::cout << "Failed to get object field ID thePlayer\n";
@@ -50,7 +50,7 @@ bool AutoPowderGrinder::Minecraft::Player::initialize(
 		return false;
 	}
 
-	auto inventoryID{ this->env->GetFieldID(EntityPlayerSPClass, "bi", "Lwm;") };
+	jfieldID inventoryID{ this->env->GetFieldID(EntityPlayerSPClass, "bi", "Lwm;") };
 	if (inventoryID == nullptr)
 	{
 		std::cout << "Failed to get inventory field ID!\n";
@@ -67,14 +67,14 @@ bool AutoPowderGrinder::Minecraft::Player::initialize(
 	jfieldID mainInventoryFieldID = this->env->GetFieldID(this->InventoryPlayerClass, "a", "[Lzx;");
 	if (mainInventoryFieldID == nullptr)
 	{
-		printf("Could not get main inventory field ID\n");
+		std::cout << "Could not get main inventory field ID\n";
 		return false;
 	}
 
 	jobject mainInventoryObj = this->env->GetObjectField(this->inventoryInstance, mainInventoryFieldID);
 	if (mainInventoryObj == nullptr)
 	{
-		printf("Could not get main inventory array object\n");
+		std::cout << "Could not get main inventory array object\n";
 		return false;
 	}
 
@@ -87,18 +87,67 @@ bool AutoPowderGrinder::Minecraft::Player::initialize(
 		return false;
 	}
 
-	this->refreshPosition();
+	this->chatCompClass = env->FindClass("fa");
+	if (this->chatCompClass == nullptr)
+	{
+		std::cout << "Failed to get chat component class!\n";
+		return false;
+	}
 
-	std::cout << "Initialized player obj\n";
+	this->addChatMessage = env->GetMethodID(EntityPlayerSPClass, "a", "(Leu;)V");
+	if (this->addChatMessage == nullptr)
+	{
+		std::cout << "Failed to get msg function ID!\n";
+		return false;
+	}
+
+	this->messageConstructor = env->GetMethodID(chatCompClass, "<init>", "(Ljava/lang/String;)V");
+	if (this->messageConstructor == nullptr)
+	{
+		std::cout << "Failed to get constructor for ChatComp class!\n";
+		return false;
+	}
+
+	this->displayNameGetter = this->env->GetMethodID(this->itemStackClass, "q", "()Ljava/lang/String;");
+	if (this->displayNameGetter == nullptr)
+	{
+		std::cout << "Could not get the display name getter method\n";
+		return false;
+	}
+
+	this->positionX = this->env->GetFieldID(EntityPlayerSPClass, "s", "D");
+	if (this->positionX == nullptr)
+	{
+		std::cout << "Could not get player X position field ID\n";
+		return false;
+	}
+
+	this->positionY = this->env->GetFieldID(EntityPlayerSPClass, "t", "D");
+	if (this->positionY == nullptr)
+	{
+		std::cout << "Could not get player Y position field ID\n";
+		return false;
+	}
+
+	this->positionZ = this->env->GetFieldID(EntityPlayerSPClass, "u", "D");
+	if (this->positionZ == nullptr)
+	{
+		std::cout << "Could not get player Z position field ID\n";
+		return false;
+	}
+
+	this->updatePosition();
+	this->updateMainInventory();
 
 	return true;
 }
 
-void AutoPowderGrinder::Minecraft::Player::refreshPosition()
+void AutoPowderGrinder::Minecraft::Player::updatePosition()
 {
-	this->position.x = env->GetDoubleField(mcThePlayerInstance, env->GetFieldID(EntityPlayerSPClass, "s", "D"));
-	this->position.y = env->GetDoubleField(mcThePlayerInstance, env->GetFieldID(EntityPlayerSPClass, "t", "D"));
-	this->position.z = env->GetDoubleField(mcThePlayerInstance, env->GetFieldID(EntityPlayerSPClass, "u", "D"));
+
+	this->position.x = this->env->GetDoubleField(this->mcThePlayerInstance, this->positionX);
+	this->position.y = this->env->GetDoubleField(this->mcThePlayerInstance, this->positionY);
+	this->position.z = this->env->GetDoubleField(this->mcThePlayerInstance, this->positionZ);
 }
 
 bool AutoPowderGrinder::Minecraft::Player::isInitialized()
@@ -108,71 +157,76 @@ bool AutoPowderGrinder::Minecraft::Player::isInitialized()
 
 void AutoPowderGrinder::Minecraft::Player::sendChatMessage(const std::string& message)
 {
-	jclass chatCompClass{ nullptr };
+	if (!this->initialized)
+	{
+		std::cout << "The player object was not initialized properly\n";
+		return;
+	}
+
 	jobject chatComp{ nullptr };
-	jmethodID addChatMessageID{ nullptr };
-	jmethodID constructorID{ nullptr };
-	jstring text{};
+	jstring text{ nullptr };
 
 	text = env->NewStringUTF(message.c_str());
 
-	chatCompClass = env->FindClass("fa"); // "fa" is ChatComponentText
-	if (chatCompClass == nullptr)
-	{
-		std::cout << "Failed to get chat component class!\n";
-		return;
-	}
-
-	constructorID = env->GetMethodID(chatCompClass, "<init>", "(Ljava/lang/String;)V");
-	if (constructorID == nullptr)
-	{
-		std::cout << "Failed to get constructor for ChatComp class!\n";
-		return;
-	}
-
-	chatComp = env->NewObject(chatCompClass, constructorID, text);
+	chatComp = env->NewObject(chatCompClass, this->messageConstructor, text);
 	if (chatComp == nullptr)
 	{
-		std::cout << "Failed to create chat component object!\n";
+		std::cout << "Failed to create chat component object\n";
 		return;
 	}
 
-	addChatMessageID = env->GetMethodID(EntityPlayerSPClass, "a", "(Leu;)V");
-	if (addChatMessageID == nullptr)
-	{
-		std::cout << "Failed to get msg function ID!\n";
-		return;
-	}
-
-	env->CallVoidMethod(mcThePlayerInstance, addChatMessageID, chatComp);
+	env->CallVoidMethod(this->mcThePlayerInstance, this->addChatMessage, chatComp);
 
 	env->DeleteLocalRef(text);
 	env->DeleteLocalRef(chatComp);
 }
 
-std::string AutoPowderGrinder::Minecraft::Player::getInventoryItem(int slotIndex)
+void AutoPowderGrinder::Minecraft::Player::updateMainInventory()
 {
 	jobject itemStackInSlot{ nullptr };
-	jmethodID displayNameGetter{ nullptr };
 	jstring itemName{ nullptr };
 
-	itemStackInSlot = this->env->GetObjectArrayElement(this->mainInventoryArray, slotIndex);
-	if (itemStackInSlot == nullptr)
+	for (int index = 0; index < 36; ++index)
 	{
-		std::cout << "Could not get item stack in slot " << slotIndex << "\n";
-		return "Air";
+		itemStackInSlot = this->env->GetObjectArrayElement(this->mainInventoryArray, index);
+		if (itemStackInSlot == nullptr)
+		{
+			this->inventory[index] = "Air";
+			continue;
+		}
+
+		itemName = static_cast<jstring>(this->env->CallObjectMethod(itemStackInSlot, displayNameGetter));
+
+		this->inventory[index] = this->env->GetStringUTFChars(itemName, 0);
+	}
+}
+
+std::string AutoPowderGrinder::Minecraft::Player::getItem(int index)
+{
+	if (!this->initialized)
+	{
+		std::cout << "The player object was not initialized properly\n";
+		return "";
 	}
 
-	displayNameGetter = this->env->GetMethodID(this->itemStackClass, "q", "()Ljava/lang/String;");
-	if (displayNameGetter == nullptr)
+	if (index >= 0 and index < 36)
+		return this->inventory[index];
+	else
+		return "";
+}
+
+std::string AutoPowderGrinder::Minecraft::Player::updateAndGetItem(int index)
+{
+	if (!this->initialized)
 	{
-		std::cout << "Could not get the display name getter method\n";
-		return "Air";
+		std::cout << "The player object was not initialized properly\n";
+		return "";
 	}
 
-	itemName = (jstring)this->env->CallObjectMethod(itemStackInSlot, displayNameGetter);
+	this->updateMainInventory();
 
-	std::string nativeName = this->env->GetStringUTFChars(itemName, 0);
-
-	return nativeName;
+	if (index >= 0 and index < 36)
+		return this->inventory[index];
+	else
+		return "";
 }
