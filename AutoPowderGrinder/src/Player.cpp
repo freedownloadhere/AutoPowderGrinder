@@ -21,6 +21,8 @@ bool AutoPowderGrinder::Minecraft::Player::initialize(
 )
 {
 	this->env = env;
+	this->mcClass = mcClass;
+	this->mcClassInstance = mcClassInstance;
 
 	this->EntityPlayerSPClass = this->env->FindClass("bew");
 	if (this->EntityPlayerSPClass == nullptr)
@@ -136,6 +138,55 @@ bool AutoPowderGrinder::Minecraft::Player::initialize(
 		return false;
 	}
 
+	jclass objMouseOverClass = this->env->FindClass("auh");
+	if (objMouseOverClass == nullptr)
+	{
+		std::cout << "Could not get the objectMouseOver class\n";
+		return false;
+	}
+
+	this->objectMouseOver = this->env->GetFieldID(this->mcClass, "s", "Lauh;");
+	if (objectMouseOver == nullptr)
+	{
+		std::cout << "Could not get the objectMouseOver minecraft class field\n";
+		return false;
+	}
+
+	this->getBlockPos = this->env->GetMethodID(objMouseOverClass, "a", "()Lcj;");
+	if (this->getBlockPos == nullptr)
+	{
+		std::cout << "Could not get the getBlockPos method\n";
+		return false;
+	}
+
+	jclass blockPosClass = this->env->FindClass("cj");
+	if (blockPosClass == nullptr)
+	{
+		std::cout << "Could not get block pos class\n";
+		return false;
+	}
+
+	this->blockPosX = this->env->GetMethodID(blockPosClass, "n", "()I");
+	if (this->blockPosX == nullptr)
+	{
+		std::cout << "Could not get the getX block pos method\n";
+		return false;
+	}
+
+	this->blockPosY = this->env->GetMethodID(blockPosClass, "o", "()I");
+	if (this->blockPosY == nullptr)
+	{
+		std::cout << "Could not get the getY block pos method\n";
+		return false;
+	}
+
+	this->blockPosZ = this->env->GetMethodID(blockPosClass, "p", "()I");
+	if (this->blockPosZ == nullptr)
+	{
+		std::cout << "Could not get the getZ block pos method\n";
+		return false;
+	}
+
 	this->updatePosition();
 	this->updateMainInventory();
 
@@ -229,4 +280,31 @@ std::string AutoPowderGrinder::Minecraft::Player::updateAndGetItem(int index)
 		return this->inventory[index];
 	else
 		return "";
+}
+
+Position AutoPowderGrinder::Minecraft::Player::getLookingAt()
+{
+	jobject mouseOverInstance{ nullptr };
+	jobject blockPos{ nullptr };
+	Position pos{ 0, 0, 0 };
+
+	mouseOverInstance = this->env->GetObjectField(this->mcClassInstance, this->objectMouseOver);
+	if (mouseOverInstance == nullptr)
+	{
+		std::cout << "Could not get the objMouseOver instance\n";
+		return pos;
+	}
+
+	blockPos = this->env->CallObjectMethod(mouseOverInstance, this->getBlockPos);
+	if (blockPos == nullptr)
+	{
+		std::cout << "Could not get the block position the player is looking at\n";
+		return pos;
+	}
+
+	pos.x = this->env->CallIntMethod(blockPos, this->blockPosX);
+	pos.y = this->env->CallIntMethod(blockPos, this->blockPosY);
+	pos.z = this->env->CallIntMethod(blockPos, this->blockPosZ);
+
+	return pos;
 }

@@ -7,15 +7,21 @@
 #include <iostream>
 #include <Windows.h>
 #include <cstdio>
+#include <math.h>
 
 class AutoPowderGrinder
 {
+public:
+	AutoPowderGrinder();
+
+	void run();
+
 private:
 	class Minecraft;
+	class Pathfinder;
 	class StoneMiner;
 	class ChestOpener;
 	class ItemManager;
-	class Pathfinder;
 
 	std::shared_ptr<Minecraft> minecraft;
 
@@ -28,11 +34,6 @@ private:
 	bool running{ false };
 
 	bool initialize();
-
-public:
-	AutoPowderGrinder();
-
-	void run();
 };
 
 class AutoPowderGrinder::Minecraft
@@ -61,6 +62,8 @@ private:
 struct Position
 {
 	double x{ 0 }, y{ 0 }, z{ 0 };
+
+	static double distance(const Position& pos1, const Position& pos2);
 };
 
 class AutoPowderGrinder::Minecraft::Player
@@ -78,26 +81,34 @@ public:
 	void updatePosition();
 	std::string getItem(int index);
 	std::string updateAndGetItem(int index);
+	Position getLookingAt();
 
 private:
 	Position position{ 0 };
 	std::string inventory[36] = {};
 
 	jclass 
+		mcClass{ nullptr },
 		EntityPlayerSPClass{ nullptr },
 		InventoryPlayerClass{ nullptr },
 		itemStackClass{ nullptr },
 		chatCompClass{ nullptr };
 	jobject 
+		mcClassInstance{ nullptr },
 		mcThePlayerInstance{ nullptr },
 		inventoryInstance{ nullptr };
 	jobjectArray 
 		mainInventoryArray{ nullptr };
 	jmethodID 
+		getBlockPos{ nullptr },
 		addChatMessage{ nullptr },
 		messageConstructor{ nullptr },
+		blockPosX{ nullptr },
+		blockPosY{ nullptr },
+		blockPosZ{ nullptr },
 		displayNameGetter{ nullptr };
 	jfieldID
+		objectMouseOver{ nullptr },
 		positionX{ nullptr },
 		positionY{ nullptr },
 		positionZ{ nullptr };

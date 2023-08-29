@@ -161,6 +161,7 @@
     <ClCompile Include="src\dllmain.cpp" />
     <ClCompile Include="src\Minecraft.cpp" />
     <ClCompile Include="src\Player.cpp" />
+    <ClCompile Include="src\Position.cpp" />
     <ClCompile Include="src\World.cpp" />
   </ItemGroup>
   <ItemGroup>
