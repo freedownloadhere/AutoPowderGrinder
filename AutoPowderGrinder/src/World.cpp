@@ -64,7 +64,7 @@ bool AutoPowderGrinder::Minecraft::World::initialize(
 		return false;
 	}
 
-	this->blockPosConstructor = this->env->GetMethodID(this->blockPosClass, "<init>", "(DDD)V");
+	this->blockPosConstructor = this->env->GetMethodID(this->blockPosClass, "<init>", "(III)V");
 	if (this->blockPosConstructor == nullptr)
 	{
 		std::cout << "Could not get block pos constructor ID\n";

@@ -187,6 +187,27 @@ bool AutoPowderGrinder::Minecraft::Player::initialize(
 		return false;
 	}
 
+	this->enumFacingClass = this->env->FindClass("cq");
+	if (this->enumFacingClass == nullptr)
+	{
+		std::cout << "Could not get the enumFacing class\n";
+		return false;
+	}
+
+	this->getHorizontalFacing = this->env->GetMethodID(this->EntityPlayerSPClass, "aP", "()Lcq;");
+	if (this->getHorizontalFacing == nullptr)
+	{
+		std::cout << "Could not get the getHorizontalFacing method\n";
+		return false;
+	}
+
+	this->getEnumFacingIndex = this->env->GetMethodID(this->enumFacingClass, "a", "()I");
+	if (this->getEnumFacingIndex == nullptr)
+	{
+		std::cout << "Could not get the enumfacing getIndex method\n";
+		return false;
+	}
+
 	this->updatePosition();
 	this->updateMainInventory();
 
@@ -196,9 +217,9 @@ bool AutoPowderGrinder::Minecraft::Player::initialize(
 void AutoPowderGrinder::Minecraft::Player::updatePosition()
 {
 
-	this->position.x = this->env->GetDoubleField(this->mcThePlayerInstance, this->positionX);
-	this->position.y = this->env->GetDoubleField(this->mcThePlayerInstance, this->positionY);
-	this->position.z = this->env->GetDoubleField(this->mcThePlayerInstance, this->positionZ);
+	this->position.x = (int)this->env->GetDoubleField(this->mcThePlayerInstance, this->positionX);
+	this->position.y = (int)this->env->GetDoubleField(this->mcThePlayerInstance, this->positionY);
+	this->position.z = (int)this->env->GetDoubleField(this->mcThePlayerInstance, this->positionZ);
 }
 
 bool AutoPowderGrinder::Minecraft::Player::isInitialized()
@@ -307,4 +328,28 @@ Position AutoPowderGrinder::Minecraft::Player::getLookingAt()
 	pos.z = this->env->CallIntMethod(blockPos, this->blockPosZ);
 
 	return pos;
+}
+
+AutoPowderGrinder::Minecraft::Player::EnumFacing AutoPowderGrinder::Minecraft::Player::getFacing()
+{
+	jobject facing{ nullptr };
+	int index = 0;
+
+	facing = this->env->CallObjectMethod(this->mcThePlayerInstance, this->getHorizontalFacing);
+	if (facing == nullptr)
+	{
+		std::cout << "Could not get the direction the player is facing\n";
+		return AutoPowderGrinder::Minecraft::Player::EnumFacing::DOWN;
+	}
+
+	index = this->env->CallIntMethod(facing, this->getEnumFacingIndex);
+	if (index == 0)
+		std::cout << "Invalid horizontal enumfacing index\n";
+
+	return (AutoPowderGrinder::Minecraft::Player::EnumFacing)index;
+}
+
+Position AutoPowderGrinder::Minecraft::Player::getPosition()
+{
+	return this->position;
 }
