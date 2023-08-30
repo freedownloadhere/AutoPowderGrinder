@@ -118,10 +118,9 @@ void AutoPowderGrinder::StoneMiner::doRoutine()
 	)
 		this->stoneToMine.pop_front();
 
+	this->minecraft->player->sendChatMessage("\n\n§7The queue contains §a" + std::to_string(this->stoneToMine.size()) + " §7elements.   \n");
 	if (!this->stoneToMine.empty())
 	{
-		this->minecraft->player->sendChatMessage("\n\n§7The queue contains §a" + std::to_string(this->stoneToMine.size()) + " §7elements:   \n");
-
 		bool frontOfQueue{ true };
 		for (const auto& i : this->stoneToMine)
 		{
@@ -135,6 +134,12 @@ void AutoPowderGrinder::StoneMiner::doRoutine()
 				);
 			frontOfQueue = false;
 		}
+	}
+
+	if (GetAsyncKeyState(VK_NUMPAD1))
+	{
+		this->stoneToMine.clear();
+		this->minecraft->player->sendChatMessage("§7Queue cleared ");
 	}
 
 	std::this_thread::sleep_for(std::chrono::seconds(2));

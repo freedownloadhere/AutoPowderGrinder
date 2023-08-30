@@ -351,5 +351,7 @@ AutoPowderGrinder::Minecraft::Player::EnumFacing AutoPowderGrinder::Minecraft::P
 
 Position AutoPowderGrinder::Minecraft::Player::getPosition()
 {
+	this->updatePosition();
+
 	return this->position;
 }

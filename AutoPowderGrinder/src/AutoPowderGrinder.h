@@ -205,12 +205,12 @@ private:
 
 	const Position direction[6] =
 	{
-		{0, 1, 0},
-		{0, -1, 0},
-		{0, 0, -1},
-		{0, 0, 1},
-		{-1, 0, 0},
-		{1, 0, 0}
+		{0, -1, 0},	// UP
+		{0, 0, -1},	// NORTH
+		{1, 0, 0},	// EAST
+		{0, 0, 1},	// SOUTH
+		{-1, 0, 0},	// WEST
+		{0, 1, 0}  // DOWN
 	};
 
 	std::shared_ptr<AutoPowderGrinder::Minecraft> minecraft{ nullptr };
