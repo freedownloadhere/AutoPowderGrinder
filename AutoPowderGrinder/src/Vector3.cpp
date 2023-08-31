@@ -60,3 +60,14 @@ void Vector3::truncate()
 	this->y = static_cast<int>(this->y);
 	this->z = static_cast<int>(this->z);
 }
+
+void Vector3::truncate2()
+{
+	this->x = static_cast<int>(this->x);
+	this->y = static_cast<int>(this->y);
+	this->z = static_cast<int>(this->z);
+
+	if (this->x < 0) this->x--;
+	if (this->y < 0) this->y--;
+	if (this->z < 0) this->z--;
+}

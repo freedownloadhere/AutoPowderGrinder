@@ -84,6 +84,12 @@ namespace apg
 		bool operator<(const Vector3& other) const; // For set. Might change to hash and unordered_set later.
 
 		void truncate();
+
+		/// <summary>
+		/// Subtracts 1 from truncated negative values to
+		/// solve an issue with the player position truncation.
+		/// </summary>
+		void truncate2();
 	};
 	constexpr Vector3 nullvector{ -566547550, -566547550, -566547550 };
 
@@ -114,7 +120,8 @@ namespace apg
 		std::string getItem(int index);
 		std::string updateAndGetItem(int index);
 		Vector3 getLookingAt();
-		Vector3 getPosition();
+		Vector3 getFootPosition();
+		Vector3 getHeadPosition();
 		EnumFacing getFacing();
 		void setYawPitch(float yaw, float pitch);
 		void leftClick();
@@ -232,8 +239,8 @@ namespace apg
 
 		const Vector3 d[6] =
 		{
-			{0, 1, 0},  // DOWN
-			{0, -1, 0},	// UP
+			{0, -1, 0},	// DOWN
+			{0, 1, 0},  // UP
 			{0, 0, -1},	// NORTH
 			{0, 0, 1},	// SOUTH
 			{-1, 0, 0},	// WEST
