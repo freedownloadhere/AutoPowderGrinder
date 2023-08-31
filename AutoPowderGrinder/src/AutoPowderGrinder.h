@@ -11,77 +11,82 @@
 #include <queue>
 #include <set>
 
-class AutoPowderGrinder
+namespace apg
 {
-public:
-	AutoPowderGrinder();
+	constexpr double TO_RADIANS{ 57.29578049044297 }; // Pi over 180.
+	constexpr int MAX_REACH{ 4 };
 
-	void run();
+	class AutoPowderGrinder
+	{
+	public:
+		AutoPowderGrinder();
 
-private:
-	class Minecraft;
-	class Pathfinder;
-	class StoneMiner;
-	class ChestOpener;
-	class ItemManager;
+		void run();
 
-	std::shared_ptr<Minecraft> minecraft{ nullptr };
-	std::unique_ptr<StoneMiner> stoneMiner{ nullptr };
+	private:
+		class Minecraft;
+		class Pathfinder;
+		class BlockManager;
+		class ItemManager;
 
-	/*
-	std::unique_ptr<ChestOpener> chestOpener;
-	std::unique_ptr<ItemManager> itemManager;
-	std::unique_ptr<Pathfinder> pathfinder;*/
+		std::shared_ptr<Minecraft> minecraft{ nullptr };
+		std::unique_ptr<BlockManager> blockManager{ nullptr };
 
-	bool initialized{ false };
-	bool running{ false };
+		/*
+		std::unique_ptr<ItemManager> itemManager;
+		std::unique_ptr<Pathfinder> pathfinder;*/
 
-	bool initialize();
-};
+		bool initialized{ false };
+		bool running{ false };
 
-class AutoPowderGrinder::Minecraft
-{
-public:
-	class Player;
-	class World;
+		bool initialize();
+	};
 
-	std::shared_ptr<Player> player{ nullptr };
-	std::shared_ptr<World> world{ nullptr };
+	class AutoPowderGrinder::Minecraft
+	{
+	public:
+		class Player;
+		class World;
 
-	Minecraft();
-	bool isInitialized();
+		std::shared_ptr<Player> player{ nullptr };
+		std::shared_ptr<World> world{ nullptr };
 
-private:
-	jclass 
-		mcClass{ nullptr };
-	jobject 
-		mcClassInstance{ nullptr };
+		Minecraft();
+		bool isInitialized();
 
-	bool initialized{ false };
-	JNIEnv* env{ nullptr };
-	bool initialize();
-};
+	private:
+		jclass
+			mcClass{ nullptr };
+		jobject
+			mcClassInstance{ nullptr };
 
-struct Position
-{
-	int x{ 0 }, y{ 0 }, z{ 0 };
+		bool initialized{ false };
+		JNIEnv* env{ nullptr };
+		bool initialize();
+	};
 
-	static double distance(const Position& pos1, const Position& pos2);
+	struct Vector3
+	{
+		double x{ 0 }, y{ 0 }, z{ 0 };
 
-	bool operator==(const Position& other) const;
+		static double distance(const Vector3& pos1, const Vector3& pos2);
 
-	bool operator!=(const Position& other) const;
+		bool operator==(const Vector3& other) const;
 
-	Position operator+(const Position& other) const;
+		bool operator!=(const Vector3& other) const;
 
-	Position operator*(int multiplier) const;
+		Vector3 operator+(const Vector3& other) const;
 
-	bool operator<(const Position& other) const;
-};
+		Vector3 operator-(const Vector3& other) const;
 
-class AutoPowderGrinder::Minecraft::Player
-{
-public:
+		Vector3 operator*(int multiplier) const;
+
+		bool operator<(const Vector3& other) const; // For set. Might change to hash and unordered_set later.
+
+		void truncate();
+	};
+	constexpr Vector3 nullvector{ -566547550, -566547550, -566547550 };
+
 	enum class EnumFacing
 	{
 		DOWN = 0,  // -y (0, -1, 0)
@@ -92,139 +97,180 @@ public:
 		EAST = 5   // +x (1, 0, 0)
 	};
 
-	Player(
-		JNIEnv* env,
-		const jclass& mcClass,
-		const jobject& mcClassInstance
-	);
-
-	bool isInitialized();
-	void sendChatMessage(const std::string& message);
-	void updateMainInventory();
-	void updatePosition();
-	std::string getItem(int index);
-	std::string updateAndGetItem(int index);
-	Position getLookingAt();
-	Position getPosition();
-	EnumFacing getFacing();
-
-private:
-	Position position{ 0, 0, 0 };
-	std::string inventory[36] = {};
-
-	jclass 
-		mcClass{ nullptr },
-		EntityPlayerSPClass{ nullptr },
-		InventoryPlayerClass{ nullptr },
-		itemStackClass{ nullptr },
-		enumFacingClass{ nullptr },
-		chatCompClass{ nullptr };
-	jobject 
-		mcClassInstance{ nullptr },
-		mcThePlayerInstance{ nullptr },
-		inventoryInstance{ nullptr };
-	jobjectArray 
-		mainInventoryArray{ nullptr };
-	jmethodID 
-		getBlockPos{ nullptr },
-		addChatMessage{ nullptr },
-		messageConstructor{ nullptr },
-		blockPosX{ nullptr },
-		blockPosY{ nullptr },
-		blockPosZ{ nullptr },
-		getHorizontalFacing{ nullptr },
-		getEnumFacingIndex{ nullptr },
-		displayNameGetter{ nullptr };
-	jfieldID
-		objectMouseOver{ nullptr },
-		positionX{ nullptr },
-		positionY{ nullptr },
-		positionZ{ nullptr };
-
-	// TODO Blocks around player
-
-	// Get enumfacing
-
-	bool initialized{ false };
-	JNIEnv* env{ nullptr };
-	bool initialize(
-		JNIEnv* env,
-		const jclass& mcClass,
-		const jobject& mcClassInstance
-	);
-};
-
-class AutoPowderGrinder::Minecraft::World
-{
-public:
-	World(
-		JNIEnv* env,
-		const jclass& mcClass,
-		const jobject& mcClassInstance
-	);
-
-	bool isInitialized();
-	int getBlockID(const Position& pos);
-
-private:
-	jclass 
-		worldClientClass{ nullptr },
-		blockPosClass{ nullptr },
-		blockClass{ nullptr };
-	jmethodID 
-		getBlockState{ nullptr },
-		getBlock{ nullptr },
-		blockPosConstructor{ nullptr },
-		getIDfromBlock{ nullptr };
-	jobject 
-		worldInstance{ nullptr };
-
-	bool initialized{ false };
-	JNIEnv* env{ nullptr };
-	bool initialize(
-		JNIEnv* env,
-		const jclass& mcClass,
-		const jobject& mcClassInstance
-	);
-};
-
-class AutoPowderGrinder::StoneMiner
-{
-public:
-	StoneMiner(const std::shared_ptr<AutoPowderGrinder::Minecraft>& minecraft);
-
-	bool isInitialized();
-	void doRoutine();
-
-private:
-	static const int
-		STONE_ID = 1,
-		MAX_QUEUE_SIZE = 9,
-		MAX_SEARCH_DISTANCE_FRONT = 7,
-		MAX_SEARCH_DISTANCE_SIDE = 3;
-
-	const Position direction[6] =
+	class AutoPowderGrinder::Minecraft::Player
 	{
-		{0, -1, 0},	// UP
-		{0, 0, -1},	// NORTH
-		{1, 0, 0},	// EAST
-		{0, 0, 1},	// SOUTH
-		{-1, 0, 0},	// WEST
-		{0, 1, 0}  // DOWN
+	public:
+		Player(
+			JNIEnv* env,
+			const jclass& mcClass,
+			const jobject& mcClassInstance
+		);
+
+		bool isInitialized();
+		void sendChatMessage(const std::string& message);
+		void updateMainInventory();
+		void updatePosition();
+		void updateYawPitch();
+		std::string getItem(int index);
+		std::string updateAndGetItem(int index);
+		Vector3 getLookingAt();
+		Vector3 getPosition();
+		EnumFacing getFacing();
+		void setYawPitch(float yaw, float pitch);
+		void leftClick();
+		void rightClick();
+
+	private:
+		Vector3 position{ 0, 0, 0 };
+		std::string inventory[36] = {};
+		float yaw{ 0 }, pitch{ 0 };
+
+		jclass
+			mcClass{ nullptr },
+			EntityPlayerSPClass{ nullptr },
+			InventoryPlayerClass{ nullptr },
+			itemStackClass{ nullptr },
+			enumFacingClass{ nullptr },
+			chatCompClass{ nullptr };
+		jobject
+			mcClassInstance{ nullptr },
+			mcThePlayerInstance{ nullptr },
+			inventoryInstance{ nullptr };
+		jobjectArray
+			mainInventoryArray{ nullptr };
+		jmethodID
+			getBlockPos{ nullptr },
+			addChatMessage{ nullptr },
+			messageConstructor{ nullptr },
+			blockPosX{ nullptr },
+			blockPosY{ nullptr },
+			blockPosZ{ nullptr },
+			setRotation{ nullptr },
+			getHorizontalFacing{ nullptr },
+			getEnumFacingIndex{ nullptr },
+			displayNameGetter{ nullptr };
+		jfieldID
+			objectMouseOver{ nullptr },
+			positionX{ nullptr },
+			positionY{ nullptr },
+			positionZ{ nullptr },
+			yawField{ nullptr },
+			pitchField{ nullptr };
+
+		inline static INPUT leftClickInput[2], rightClickInput[2];
+
+		bool initialized{ false };
+		JNIEnv* env{ nullptr };
+		bool initialize(
+			JNIEnv* env,
+			const jclass& mcClass,
+			const jobject& mcClassInstance
+		);
 	};
 
-	std::shared_ptr<AutoPowderGrinder::Minecraft> minecraft{ nullptr };
-	std::deque<Position> stoneToMine;
+	class AutoPowderGrinder::Minecraft::World
+	{
+	public:
+		World(
+			JNIEnv* env,
+			const jclass& mcClass,
+			const jobject& mcClassInstance
+		);
 
-	bool isStone(const Position& pos);
-	bool alreadyInQueue(const Position& pos);
-	void findStone();
-	bool positionMeetsCriteria(
-		const Position& pos,
-		AutoPowderGrinder::Minecraft::Player::EnumFacing facing,
-		const Position& playerPosition
-	);
+		bool isInitialized();
+		int getBlockID(const Vector3& pos);
 
-	bool initialized{ false };
-	bool initialize(const std::shared_ptr<AutoPowderGrinder::Minecraft>& minecraft);
-};
+	private:
+		jclass
+			worldClientClass{ nullptr },
+			blockPosClass{ nullptr },
+			blockClass{ nullptr };
+		jmethodID
+			getBlockState{ nullptr },
+			getBlock{ nullptr },
+			blockPosConstructor{ nullptr },
+			getIDfromBlock{ nullptr };
+		jobject
+			worldInstance{ nullptr };
+
+		bool initialized{ false };
+		JNIEnv* env{ nullptr };
+		bool initialize(
+			JNIEnv* env,
+			const jclass& mcClass,
+			const jobject& mcClassInstance
+		);
+	};
+
+	struct Block
+	{
+		int id;
+		Vector3 pos;
+
+		inline static std::set<int> 
+			blocksToBreak = { 1, 14, 15, 16, 21, 56, 73, 74, 129 },
+			blocksToOpen = { 54, 146 };
+
+		bool toBreak() const;
+		bool toOpen() const;
+		bool isAir() const;
+	};
+
+	class AutoPowderGrinder::BlockManager
+	{
+	public:
+		BlockManager(const std::shared_ptr<AutoPowderGrinder::Minecraft>& minecraft);
+
+		bool isInitialized();
+		void doRoutine();
+
+	private:
+		inline static const int
+			MAX_QUEUE_SIZE = 12,
+			MAX_SEARCH_DISTANCE_FRONT = 7,
+			MAX_SEARCH_DISTANCE_SIDE = 3;
+
+		const Vector3 d[6] =
+		{
+			{0, 1, 0},  // DOWN
+			{0, -1, 0},	// UP
+			{0, 0, -1},	// NORTH
+			{0, 0, 1},	// SOUTH
+			{-1, 0, 0},	// WEST
+			{1, 0, 0}	// EAST
+		};
+		const Vector3 d_Straight[6][5] =
+		{
+			{},												// DOWN (do not access)
+			{},												// UP (do not access)
+			{d[4], d[4] + d[0], d[0], d[5] + d[0], d[4]},	// NORTH
+			{d[5], d[5] + d[0], d[0], d[4] + d[0], d[4]},	// SOUTH
+			{d[3], d[3] + d[0], d[0], d[2] + d[0], d[2]},	// WEST
+			{d[2], d[2] + d[0], d[0], d[3] + d[0], d[3]}	// EAST
+		};
+		const Vector3 getBlockCenter = { 0.5, 0, 0.5 };
+
+		std::shared_ptr<AutoPowderGrinder::Minecraft> minecraft{ nullptr };
+		std::deque<Block> blockQueue;
+
+		bool positionMeetsCriteria(
+			const Vector3& pos,
+			const EnumFacing& facing,
+			const Vector3& playerPosition
+		) const;
+		bool checkBlockValidity(const Block& block) const;
+		bool alreadyInQueue(const Block& block) const;
+
+		Block toBlock(const Vector3& pos);
+
+		//void findInitialStone();
+		void queueBlocks();
+		bool aimForBlock(const Block& targettedBlock);
+		void actUponBlock(const Block& targettedBlock);
+
+		bool initialized{ false };
+		bool initialize(const std::shared_ptr<AutoPowderGrinder::Minecraft>& minecraft);
+	};
+
+	float clampAngle(float angle, float min, float max);
+}

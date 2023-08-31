@@ -2,14 +2,12 @@
 
 void MainThread(HINSTANCE instance)
 {
-	std::unique_ptr<AutoPowderGrinder> myPowderGrinder = std::make_unique<AutoPowderGrinder>();
+	std::unique_ptr<apg::AutoPowderGrinder> myPowderGrinder = std::make_unique<apg::AutoPowderGrinder>();
 
 	while (!GetAsyncKeyState(VK_NUMPAD0))
 	{
 		myPowderGrinder->run();
 	}
-
-	std::this_thread::sleep_for(std::chrono::seconds(3));
 
 	FreeLibrary(instance);
 }

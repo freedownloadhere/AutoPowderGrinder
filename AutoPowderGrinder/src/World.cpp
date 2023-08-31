@@ -1,5 +1,7 @@
 #include "AutoPowderGrinder.h"
 
+using namespace apg;
+
 AutoPowderGrinder::Minecraft::World::World(
 	JNIEnv* env,
 	const jclass& mcClass,
@@ -64,7 +66,7 @@ bool AutoPowderGrinder::Minecraft::World::initialize(
 		return false;
 	}
 
-	this->blockPosConstructor = this->env->GetMethodID(this->blockPosClass, "<init>", "(III)V");
+	this->blockPosConstructor = this->env->GetMethodID(this->blockPosClass, "<init>", "(DDD)V");
 	if (this->blockPosConstructor == nullptr)
 	{
 		std::cout << "Could not get block pos constructor ID\n";
@@ -95,7 +97,7 @@ bool AutoPowderGrinder::Minecraft::World::initialize(
 	return true;
 }
 
-int AutoPowderGrinder::Minecraft::World::getBlockID(const Position& pos)
+int AutoPowderGrinder::Minecraft::World::getBlockID(const Vector3& pos)
 {
 	if (!this->initialized)
 	{

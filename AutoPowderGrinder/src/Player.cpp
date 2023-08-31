@@ -1,5 +1,7 @@
 #include "AutoPowderGrinder.h"
 
+using namespace apg;
+
 AutoPowderGrinder::Minecraft::Player::Player(
 	JNIEnv* env,
 	const jclass& mcClass,
@@ -80,7 +82,7 @@ bool AutoPowderGrinder::Minecraft::Player::initialize(
 		return false;
 	}
 
-	this->mainInventoryArray = (jobjectArray)mainInventoryObj;
+	this->mainInventoryArray = static_cast<jobjectArray>(mainInventoryObj);
 
 	this->itemStackClass = this->env->FindClass("zx");
 	if (this->itemStackClass == nullptr)
@@ -138,6 +140,20 @@ bool AutoPowderGrinder::Minecraft::Player::initialize(
 		return false;
 	}
 
+	this->yawField = this->env->GetFieldID(EntityPlayerSPClass, "bN", "F");
+	if (this->yawField == nullptr)
+	{
+		std::cout << "Could not get player yaw field\n";
+		return false;
+	}
+
+	this->pitchField = this->env->GetFieldID(EntityPlayerSPClass, "bO", "F");
+	if (this->pitchField == nullptr)
+	{
+		std::cout << "Could not get player yaw field\n";
+		return false;
+	}
+
 	jclass objMouseOverClass = this->env->FindClass("auh");
 	if (objMouseOverClass == nullptr)
 	{
@@ -187,6 +203,13 @@ bool AutoPowderGrinder::Minecraft::Player::initialize(
 		return false;
 	}
 
+	this->setRotation = this->env->GetMethodID(this->env->FindClass("pk"), "b", "(FF)V");
+	if (this->setRotation == nullptr)
+	{
+		std::cout << "Could not get the setRotation method\n";
+		return false;
+	}
+
 	this->enumFacingClass = this->env->FindClass("cq");
 	if (this->enumFacingClass == nullptr)
 	{
@@ -208,6 +231,16 @@ bool AutoPowderGrinder::Minecraft::Player::initialize(
 		return false;
 	}
 
+	AutoPowderGrinder::Minecraft::Player::leftClickInput[0].type = INPUT_MOUSE;
+	AutoPowderGrinder::Minecraft::Player::leftClickInput[0].mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
+	AutoPowderGrinder::Minecraft::Player::leftClickInput[1].type = INPUT_MOUSE;
+	AutoPowderGrinder::Minecraft::Player::leftClickInput[1].mi.dwFlags = MOUSEEVENTF_LEFTUP;
+
+	AutoPowderGrinder::Minecraft::Player::rightClickInput[0].type = INPUT_MOUSE;
+	AutoPowderGrinder::Minecraft::Player::rightClickInput[0].mi.dwFlags = MOUSEEVENTF_RIGHTDOWN;
+	AutoPowderGrinder::Minecraft::Player::rightClickInput[1].type = INPUT_MOUSE;
+	AutoPowderGrinder::Minecraft::Player::rightClickInput[1].mi.dwFlags = MOUSEEVENTF_RIGHTUP;
+
 	this->updatePosition();
 	this->updateMainInventory();
 
@@ -216,10 +249,20 @@ bool AutoPowderGrinder::Minecraft::Player::initialize(
 
 void AutoPowderGrinder::Minecraft::Player::updatePosition()
 {
+	this->position.x = this->env->GetDoubleField(this->mcThePlayerInstance, this->positionX);
+	this->position.y = this->env->GetDoubleField(this->mcThePlayerInstance, this->positionY);
+	this->position.z = this->env->GetDoubleField(this->mcThePlayerInstance, this->positionZ);
+}
 
-	this->position.x = (int)this->env->GetDoubleField(this->mcThePlayerInstance, this->positionX);
-	this->position.y = (int)this->env->GetDoubleField(this->mcThePlayerInstance, this->positionY);
-	this->position.z = (int)this->env->GetDoubleField(this->mcThePlayerInstance, this->positionZ);
+void AutoPowderGrinder::Minecraft::Player::updateYawPitch()
+{
+	this->yaw = this->env->GetFloatField(this->mcThePlayerInstance, this->yawField);
+	this->pitch = this->env->GetFloatField(this->mcThePlayerInstance, this->pitchField);
+}
+
+void AutoPowderGrinder::Minecraft::Player::setYawPitch(float yaw, float pitch)
+{
+	this->env->CallVoidMethod(this->mcThePlayerInstance, this->setRotation, yaw, pitch);
 }
 
 bool AutoPowderGrinder::Minecraft::Player::isInitialized()
@@ -303,11 +346,11 @@ std::string AutoPowderGrinder::Minecraft::Player::updateAndGetItem(int index)
 		return "";
 }
 
-Position AutoPowderGrinder::Minecraft::Player::getLookingAt()
+Vector3 AutoPowderGrinder::Minecraft::Player::getLookingAt()
 {
 	jobject mouseOverInstance{ nullptr };
 	jobject blockPos{ nullptr };
-	Position pos{ 0, 0, 0 };
+	Vector3 pos{ 0, 0, 0 };
 
 	mouseOverInstance = this->env->GetObjectField(this->mcClassInstance, this->objectMouseOver);
 	if (mouseOverInstance == nullptr)
@@ -330,7 +373,7 @@ Position AutoPowderGrinder::Minecraft::Player::getLookingAt()
 	return pos;
 }
 
-AutoPowderGrinder::Minecraft::Player::EnumFacing AutoPowderGrinder::Minecraft::Player::getFacing()
+EnumFacing AutoPowderGrinder::Minecraft::Player::getFacing()
 {
 	jobject facing{ nullptr };
 	int index = 0;
@@ -339,19 +382,33 @@ AutoPowderGrinder::Minecraft::Player::EnumFacing AutoPowderGrinder::Minecraft::P
 	if (facing == nullptr)
 	{
 		std::cout << "Could not get the direction the player is facing\n";
-		return AutoPowderGrinder::Minecraft::Player::EnumFacing::DOWN;
+		return EnumFacing::DOWN;
 	}
 
 	index = this->env->CallIntMethod(facing, this->getEnumFacingIndex);
 	if (index == 0)
 		std::cout << "Invalid horizontal enumfacing index\n";
 
-	return (AutoPowderGrinder::Minecraft::Player::EnumFacing)index;
+	return (EnumFacing)index;
 }
 
-Position AutoPowderGrinder::Minecraft::Player::getPosition()
+Vector3 AutoPowderGrinder::Minecraft::Player::getPosition()
 {
 	this->updatePosition();
 
 	return this->position;
+}
+
+void AutoPowderGrinder::Minecraft::Player::leftClick()
+{
+	SendInput(1, &AutoPowderGrinder::Minecraft::Player::leftClickInput[0], sizeof(INPUT));
+	std::this_thread::sleep_for(std::chrono::milliseconds(100));
+	SendInput(1, &AutoPowderGrinder::Minecraft::Player::leftClickInput[1], sizeof(INPUT));
+}
+
+void AutoPowderGrinder::Minecraft::Player::rightClick()
+{
+	SendInput(1, &AutoPowderGrinder::Minecraft::Player::rightClickInput[0], sizeof(INPUT));
+	std::this_thread::sleep_for(std::chrono::milliseconds(100));
+	SendInput(1, &AutoPowderGrinder::Minecraft::Player::rightClickInput[1], sizeof(INPUT));
 }

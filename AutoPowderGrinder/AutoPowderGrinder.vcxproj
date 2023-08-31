@@ -158,11 +158,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\AutoPowderGrinder.cpp" />
+    <ClCompile Include="src\Block.cpp" />
     <ClCompile Include="src\dllmain.cpp" />
     <ClCompile Include="src\Minecraft.cpp" />
     <ClCompile Include="src\Player.cpp" />
-    <ClCompile Include="src\Position.cpp" />
-    <ClCompile Include="src\StoneMiner.cpp" />
+    <ClCompile Include="src\Vector3.cpp" />
+    <ClCompile Include="src\BlockManager.cpp" />
     <ClCompile Include="src\World.cpp" />
   </ItemGroup>
   <ItemGroup>

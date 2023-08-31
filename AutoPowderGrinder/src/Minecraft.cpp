@@ -1,5 +1,7 @@
 #include "AutoPowderGrinder.h"
 
+using namespace apg;
+
 AutoPowderGrinder::Minecraft::Minecraft()
 {
 	this->initialized = this->initialize();

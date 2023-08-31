@@ -1,5 +1,7 @@
 #include "AutoPowderGrinder.h"
 
+using namespace apg;
+
 AutoPowderGrinder::AutoPowderGrinder()
 {
 	this->initialized = this->initialize();
@@ -17,8 +19,8 @@ bool AutoPowderGrinder::initialize()
 		return false;
 	}
 
-	this->stoneMiner = std::make_unique<StoneMiner>(this->minecraft);
-	if (!this->stoneMiner->isInitialized())
+	this->blockManager = std::make_unique<BlockManager>(this->minecraft);
+	if (!this->blockManager->isInitialized())
 	{
 		std::cout << "An error occured while initializing StoneMiner\n";
 		return false;
@@ -31,6 +33,14 @@ void AutoPowderGrinder::run()
 {
 	while(!GetAsyncKeyState(VK_NUMPAD0))
 	{
-		this->stoneMiner->doRoutine();
+		this->blockManager->doRoutine();
 	}
+}
+
+float apg::clampAngle(float angle, float min, float max)
+{
+	if (angle >= 90)
+		angle -= 360;
+
+	return std::clamp(angle, min, max);
 }
