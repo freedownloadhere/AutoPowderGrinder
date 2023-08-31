@@ -28,7 +28,7 @@ Block AutoPowderGrinder::BlockManager::toBlock(const Vector3& pos)
 	return result;
 }
 
-bool AutoPowderGrinder::BlockManager::positionMeetsCriteria(
+bool AutoPowderGrinder::BlockManager::positionIsValid(
 	const Vector3& pos,
 	const EnumFacing& facing,
 	const Vector3& playerPosition
@@ -36,25 +36,11 @@ bool AutoPowderGrinder::BlockManager::positionMeetsCriteria(
 {
 	if (playerPosition.y != pos.y && (playerPosition.y - 1) != pos.y) // check whether block is at foot level or head level
 		return false;
+
 	if (pos.y < 0 || pos.y >= 255)
 		return false;
 
-	if (
-		facing == EnumFacing::NORTH ||
-		facing == EnumFacing::SOUTH
-		)
-		return
-		(
-			abs(playerPosition.x - pos.x) <= AutoPowderGrinder::BlockManager::MAX_SEARCH_DISTANCE_SIDE &&
-			abs(playerPosition.z - pos.z) <= AutoPowderGrinder::BlockManager::MAX_SEARCH_DISTANCE_FRONT
-		);
-
-	else
-		return
-		(
-			abs(playerPosition.z - pos.z) <= AutoPowderGrinder::BlockManager::MAX_SEARCH_DISTANCE_SIDE &&
-			abs(playerPosition.x - pos.x) <= AutoPowderGrinder::BlockManager::MAX_SEARCH_DISTANCE_FRONT
-		);
+	return true;
 }
 
 bool AutoPowderGrinder::BlockManager::checkBlockValidity(const Block& block) const
@@ -74,49 +60,10 @@ bool AutoPowderGrinder::BlockManager::alreadyInQueue(const Block& block) const
 	return false;
 }
 
-//void AutoPowderGrinder::BlockManager::findInitialStone()
-//{
-//	if (this->blockQueue.size() >= AutoPowderGrinder::BlockManager::MAX_QUEUE_SIZE)
-//		return;
-//
-//	std::set<Vector3> foundPositions;
-//	std::queue<Vector3> positionsToSearch;
-//	EnumFacing facing = this->minecraft->player->getFacing();
-//	Vector3 playerPosition = this->minecraft->player->getPosition();
-//
-//	playerPosition.truncate();
-//	//playerPosition = playerPosition + this->direction[(int)facing] * 2; // To make blocks in front more likely to be picked
-//
-//	positionsToSearch.push(playerPosition);
-//
-//	while (!positionsToSearch.empty())
-//	{
-//		Vector3 currentPos = positionsToSearch.front();
-//		foundPositions.insert(currentPos);
-//
-//		for (const Vector3& direction : this->d)
-//		{
-//			Vector3 neighbouringBlock = currentPos + direction;
-//			if (this->positionMeetsCriteria(neighbouringBlock, facing, playerPosition) && !foundPositions.contains(neighbouringBlock))
-//			{
-//				positionsToSearch.push(neighbouringBlock);
-//				foundPositions.insert(neighbouringBlock);
-//			}
-//		}
-//
-//		if (this->toBlock(currentPos).toBreak())
-//		{
-//			this->queueBlocks(
-//				currentPos,
-//				facing,
-//				playerPosition
-//			);
-//			return;
-//		}
-//
-//		positionsToSearch.pop();
-//	}
-//}
+bool AutoPowderGrinder::BlockManager::queueIsFull() const
+{
+	return this->blockQueue.size() >= AutoPowderGrinder::BlockManager::MAX_QUEUE_SIZE;
+}
 
 void AutoPowderGrinder::BlockManager::queueBlocks()
 {
@@ -129,31 +76,32 @@ void AutoPowderGrinder::BlockManager::queueBlocks()
 	Vector3 nextInFront = playerPosition;
 	for(int k = 0; k < 9; ++k)
 	{
-		if((toBlock(nextInFront).toBreak()))
-			positionsToSearch.push_back(nextInFront);
+		positionsToSearch.push_back(nextInFront);
 
-		nextInFront = nextInFront + this->d[(int)facing];
+		nextInFront = nextInFront + this->enumFacingVec[(int)facing];
 	}
 
-	while (!positionsToSearch.empty() && this->blockQueue.size() < AutoPowderGrinder::BlockManager::MAX_QUEUE_SIZE)
+	while (!positionsToSearch.empty() && !this->queueIsFull())
 	{
 		Vector3 currentBlockPos = positionsToSearch.front();
 
-		for (const Vector3& direction : this->d_Straight[(int)facing])
+		for (const Vector3& direction : this->directionalVector[(int)facing])
 		{
 			Vector3 neighbouringBlockPos = currentBlockPos + direction;
 
-			if 
-			(
-				this->blockQueue.size() < AutoPowderGrinder::BlockManager::MAX_QUEUE_SIZE &&
-				this->positionMeetsCriteria(neighbouringBlockPos, facing, playerPosition)
-			)
-			{
-				Block neighbouringBlock = this->toBlock(neighbouringBlockPos);
-				if(!this->alreadyInQueue(neighbouringBlock))
-					if (neighbouringBlock.toBreak() || neighbouringBlock.toOpen())
-						this->blockQueue.push_back(neighbouringBlock);
-			}
+			if (this->queueIsFull())
+				continue;
+			if (!this->positionIsValid(neighbouringBlockPos, facing, playerPosition))
+				continue;
+
+			Block neighbouringBlock = this->toBlock(neighbouringBlockPos);
+
+			if (this->alreadyInQueue(neighbouringBlock))
+				continue;
+			if (!neighbouringBlock.toBreak() && !neighbouringBlock.toOpen())
+				continue;
+					
+			this->blockQueue.push_back(neighbouringBlock);
 		}
 
 		positionsToSearch.pop_front();
@@ -181,42 +129,44 @@ bool AutoPowderGrinder::BlockManager::aimForBlock(const Block& targettedBlock)
 
 void AutoPowderGrinder::BlockManager::actUponBlock(const Block& targettedBlock)
 {
-	/*if (this->minecraft->player->getLookingAt() != targettedBlock.pos)
-		return;*/
+	if (this->minecraft->player->getLookingAt() != targettedBlock.pos)
+		return;
 
 	if (targettedBlock.toBreak())
-	{
 		this->minecraft->player->leftClick();
-	}
+
 	else if (targettedBlock.toOpen())
-	{
 		this->minecraft->player->rightClick();
-	}
+}
+
+void AutoPowderGrinder::BlockManager::cleanUpQueue()
+{
+	while (!this->blockQueue.empty() && !checkBlockValidity(this->blockQueue.front()))
+		this->blockQueue.pop_front();
 }
 
 void AutoPowderGrinder::BlockManager::doRoutine()
 {
 	this->queueBlocks();
 
-	while (!this->blockQueue.empty() && !checkBlockValidity(this->blockQueue.front()))
-		this->blockQueue.pop_front();
+	this->cleanUpQueue();
 
-	if (!this->blockQueue.empty())
-	{
-		Block currentBlock = this->blockQueue.front();
+	if (this->blockQueue.empty())
+		return;
 
-		this->minecraft->player->sendChatMessage(
-			"§7Aiming for §3" +
-			std::to_string((int)currentBlock.pos.x) + " " +
-			std::to_string((int)currentBlock.pos.y) + " " +
-			std::to_string((int)currentBlock.pos.z) +
-			"   "
-		);
+	Block currentBlock = this->blockQueue.front();
 
-		bool lockedOntoBlock = this->aimForBlock(currentBlock);
-		if (lockedOntoBlock)
-			this->actUponBlock(currentBlock);
-	}
+	this->minecraft->player->sendChatMessage(
+		"§7Aiming for §3" +
+		std::to_string((int)currentBlock.pos.x) + " " +
+		std::to_string((int)currentBlock.pos.y) + " " +
+		std::to_string((int)currentBlock.pos.z) + "  "
+	);
+
+	bool lockedOntoBlock = this->aimForBlock(currentBlock);
+
+	if (lockedOntoBlock)
+		this->actUponBlock(currentBlock);
 
 	std::this_thread::sleep_for(std::chrono::milliseconds(50));
 }

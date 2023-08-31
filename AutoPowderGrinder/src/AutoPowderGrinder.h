@@ -81,7 +81,7 @@ namespace apg
 
 		Vector3 operator*(int multiplier) const;
 
-		bool operator<(const Vector3& other) const; // For set. Might change to hash and unordered_set later.
+		bool operator<(const Vector3& other) const;
 
 		void truncate();
 
@@ -92,6 +92,7 @@ namespace apg
 		void truncate2();
 	};
 	constexpr Vector3 nullvector{ -566547550, -566547550, -566547550 };
+	constexpr Vector3 zerovector{ 0, 0, 0 };
 
 	enum class EnumFacing
 	{
@@ -237,7 +238,7 @@ namespace apg
 			MAX_SEARCH_DISTANCE_FRONT = 7,
 			MAX_SEARCH_DISTANCE_SIDE = 3;
 
-		const Vector3 d[6] =
+		const Vector3 enumFacingVec[6] =
 		{
 			{0, -1, 0},	// DOWN
 			{0, 1, 0},  // UP
@@ -246,32 +247,33 @@ namespace apg
 			{-1, 0, 0},	// WEST
 			{1, 0, 0}	// EAST
 		};
-		const Vector3 d_Straight[6][5] =
+		const Vector3 directionalVector[6][6] =
 		{
-			{},												// DOWN (do not access)
-			{},												// UP (do not access)
-			{d[4], d[4] + d[0], d[0], d[5] + d[0], d[4]},	// NORTH
-			{d[5], d[5] + d[0], d[0], d[4] + d[0], d[4]},	// SOUTH
-			{d[3], d[3] + d[0], d[0], d[2] + d[0], d[2]},	// WEST
-			{d[2], d[2] + d[0], d[0], d[3] + d[0], d[3]}	// EAST
+			{},															// DOWN (do not access)
+			{},															// UP (do not access)
+			{zerovector, enumFacingVec[4], enumFacingVec[4] + enumFacingVec[0], enumFacingVec[0], enumFacingVec[5] + enumFacingVec[0], enumFacingVec[4]},	// NORTH
+			{zerovector, enumFacingVec[5], enumFacingVec[5] + enumFacingVec[0], enumFacingVec[0], enumFacingVec[4] + enumFacingVec[0], enumFacingVec[4]},	// SOUTH
+			{zerovector, enumFacingVec[3], enumFacingVec[3] + enumFacingVec[0], enumFacingVec[0], enumFacingVec[2] + enumFacingVec[0], enumFacingVec[2]},	// WEST
+			{zerovector, enumFacingVec[2], enumFacingVec[2] + enumFacingVec[0], enumFacingVec[0], enumFacingVec[3] + enumFacingVec[0], enumFacingVec[3]}	// EAST
 		};
 		const Vector3 getBlockCenter = { 0.5, 0, 0.5 };
 
 		std::shared_ptr<AutoPowderGrinder::Minecraft> minecraft{ nullptr };
 		std::deque<Block> blockQueue;
 
-		bool positionMeetsCriteria(
+		bool positionIsValid(
 			const Vector3& pos,
 			const EnumFacing& facing,
 			const Vector3& playerPosition
 		) const;
 		bool checkBlockValidity(const Block& block) const;
 		bool alreadyInQueue(const Block& block) const;
+		bool queueIsFull() const;
 
 		Block toBlock(const Vector3& pos);
 
-		//void findInitialStone();
 		void queueBlocks();
+		void cleanUpQueue();
 		bool aimForBlock(const Block& targettedBlock);
 		void actUponBlock(const Block& targettedBlock);
 
