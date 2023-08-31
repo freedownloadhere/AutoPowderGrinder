@@ -7,7 +7,7 @@ AutoPowderGrinder::BlockManager::BlockManager(const std::shared_ptr<AutoPowderGr
 	this->initialized = this->initialize(minecraft);
 
 	if (!this->initialized)
-		std::cout << "Could not properly initialize the StoneMiner object\n";
+		std::cout << "Could not properly initialize the BlockManager object\n";
 }
 
 bool AutoPowderGrinder::BlockManager::initialize(const std::shared_ptr<AutoPowderGrinder::Minecraft>& minecraft)
@@ -108,21 +108,34 @@ void AutoPowderGrinder::BlockManager::queueBlocks()
 	}
 }
 
-
 bool AutoPowderGrinder::BlockManager::aimForBlock(const Block& targettedBlock)
 {
 	Vector3 localPosition = this->minecraft->player->getHeadPosition();
 	Vector3 blockPosition = targettedBlock.pos + this->getBlockCenter;
+	ViewAngles oldViewAngles = this->minecraft->player->getViewAngles();
 
 	if (Vector3::distance(blockPosition, localPosition) > apg::MAX_REACH)
 		return false;
 
-	Vector3 delta = blockPosition - localPosition;
+	Vector3 deltaVector = blockPosition - localPosition;
+	ViewAngles newViewAngles
+	{
+		-apg::clampAngle(std::atan2(deltaVector.x, deltaVector.z) * apg::TO_RADIANS, -360, 360),
+		std::atan2(-deltaVector.y, std::hypot(-deltaVector.z, -deltaVector.x)) * apg::TO_RADIANS
+	};
 
-	float newYaw = -apg::clampAngle(std::atan2(delta.x, delta.z) * apg::TO_RADIANS, -360, 360);
-	float newPitch = std::atan2(-delta.y, std::hypot(-delta.z, -delta.x)) * apg::TO_RADIANS;
+	newViewAngles.yaw = apg::clampAngle(newViewAngles.yaw, -180, 180);
+	
+	ViewAngles smoothed = (newViewAngles - oldViewAngles) / 10;
 
-	this->minecraft->player->setYawPitch(newYaw, newPitch);
+	for (int i = 0; i < 10; ++i)
+	{
+		this->minecraft->player->setViewAngles(oldViewAngles + smoothed);
+		oldViewAngles = this->minecraft->player->getViewAngles();
+		std::this_thread::sleep_for(std::chrono::milliseconds(5));
+	}
+
+	this->minecraft->player->setViewAngles(newViewAngles);
 
 	return true;
 }

@@ -254,15 +254,24 @@ void AutoPowderGrinder::Minecraft::Player::updatePosition()
 	this->position.z = this->env->GetDoubleField(this->mcThePlayerInstance, this->positionZ);
 }
 
-void AutoPowderGrinder::Minecraft::Player::updateYawPitch()
+void AutoPowderGrinder::Minecraft::Player::updateViewAngles()
 {
-	this->yaw = this->env->GetFloatField(this->mcThePlayerInstance, this->yawField);
-	this->pitch = this->env->GetFloatField(this->mcThePlayerInstance, this->pitchField);
+	this->viewAngles.yaw = this->env->GetFloatField(this->mcThePlayerInstance, this->yawField);
+	this->viewAngles.pitch = this->env->GetFloatField(this->mcThePlayerInstance, this->pitchField);
+
+	this->viewAngles.yaw = apg::clampAngle(this->viewAngles.yaw, -180, 180);
 }
 
-void AutoPowderGrinder::Minecraft::Player::setYawPitch(float yaw, float pitch)
+void AutoPowderGrinder::Minecraft::Player::setViewAngles(const ViewAngles& newViewAngles)
 {
-	this->env->CallVoidMethod(this->mcThePlayerInstance, this->setRotation, yaw, pitch);
+	this->env->CallVoidMethod(this->mcThePlayerInstance, this->setRotation, newViewAngles.yaw, newViewAngles.pitch);
+}
+
+ViewAngles AutoPowderGrinder::Minecraft::Player::getViewAngles()
+{
+	this->updateViewAngles();
+
+	return this->viewAngles;
 }
 
 bool AutoPowderGrinder::Minecraft::Player::isInitialized()

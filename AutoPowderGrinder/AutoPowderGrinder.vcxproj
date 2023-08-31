@@ -164,6 +164,7 @@
     <ClCompile Include="src\Player.cpp" />
     <ClCompile Include="src\Vector3.cpp" />
     <ClCompile Include="src\BlockManager.cpp" />
+    <ClCompile Include="src\ViewAngles.cpp" />
     <ClCompile Include="src\World.cpp" />
   </ItemGroup>
   <ItemGroup>

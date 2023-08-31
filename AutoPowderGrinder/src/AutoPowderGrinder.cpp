@@ -33,7 +33,7 @@ void AutoPowderGrinder::run()
 {
 	while(!GetAsyncKeyState(VK_NUMPAD0))
 	{
-		this->blockManager->doRoutine();
+		this->blockManager->doRoutine();	
 	}
 }
 

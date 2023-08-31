@@ -91,8 +91,19 @@ namespace apg
 		/// </summary>
 		void truncate2();
 	};
-	constexpr Vector3 nullvector{ -566547550, -566547550, -566547550 };
-	constexpr Vector3 zerovector{ 0, 0, 0 };
+	const Vector3 nullvector{ -566547550, -566547550, -566547550 };
+	const Vector3 zerovector{ 0, 0, 0 };
+
+	struct ViewAngles
+	{
+		float yaw{ 0 }, pitch{ 0 };
+
+		ViewAngles operator+(const ViewAngles& other) const;
+
+		ViewAngles operator-(const ViewAngles& other) const;
+
+		ViewAngles operator/(int divisor) const;
+	};
 
 	enum class EnumFacing
 	{
@@ -117,21 +128,22 @@ namespace apg
 		void sendChatMessage(const std::string& message);
 		void updateMainInventory();
 		void updatePosition();
-		void updateYawPitch();
+		void updateViewAngles();
 		std::string getItem(int index);
 		std::string updateAndGetItem(int index);
 		Vector3 getLookingAt();
 		Vector3 getFootPosition();
 		Vector3 getHeadPosition();
 		EnumFacing getFacing();
-		void setYawPitch(float yaw, float pitch);
+		void setViewAngles(const ViewAngles& newViewAngles);
+		ViewAngles getViewAngles();
 		void leftClick();
 		void rightClick();
 
 	private:
 		Vector3 position{ 0, 0, 0 };
+		ViewAngles viewAngles{ 0, 0 };
 		std::string inventory[36] = {};
-		float yaw{ 0 }, pitch{ 0 };
 
 		jclass
 			mcClass{ nullptr },
@@ -249,8 +261,8 @@ namespace apg
 		};
 		const Vector3 directionalVector[6][6] =
 		{
-			{},															// DOWN (do not access)
-			{},															// UP (do not access)
+			{zerovector},															// DOWN (do not access)
+			{zerovector},															// UP (do not access)
 			{zerovector, enumFacingVec[4], enumFacingVec[4] + enumFacingVec[0], enumFacingVec[0], enumFacingVec[5] + enumFacingVec[0], enumFacingVec[4]},	// NORTH
 			{zerovector, enumFacingVec[5], enumFacingVec[5] + enumFacingVec[0], enumFacingVec[0], enumFacingVec[4] + enumFacingVec[0], enumFacingVec[4]},	// SOUTH
 			{zerovector, enumFacingVec[3], enumFacingVec[3] + enumFacingVec[0], enumFacingVec[0], enumFacingVec[2] + enumFacingVec[0], enumFacingVec[2]},	// WEST
