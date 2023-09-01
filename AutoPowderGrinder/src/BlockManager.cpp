@@ -123,17 +123,7 @@ bool AutoPowderGrinder::BlockManager::aimForBlock(const Block& targettedBlock)
 		-apg::clampAngle(std::atan2(deltaVector.x, deltaVector.z) * apg::TO_RADIANS, -360, 360),
 		std::atan2(-deltaVector.y, std::hypot(-deltaVector.z, -deltaVector.x)) * apg::TO_RADIANS
 	};
-
 	newViewAngles.yaw = apg::clampAngle(newViewAngles.yaw, -180, 180);
-	
-	ViewAngles smoothed = (newViewAngles - oldViewAngles) / 10;
-
-	for (int i = 0; i < 10; ++i)
-	{
-		this->minecraft->player->setViewAngles(oldViewAngles + smoothed);
-		oldViewAngles = this->minecraft->player->getViewAngles();
-		std::this_thread::sleep_for(std::chrono::milliseconds(5));
-	}
 
 	this->minecraft->player->setViewAngles(newViewAngles);
 
@@ -169,17 +159,10 @@ void AutoPowderGrinder::BlockManager::doRoutine()
 
 	Block currentBlock = this->blockQueue.front();
 
-	this->minecraft->player->sendChatMessage(
-		"§7Aiming for §3" +
-		std::to_string((int)currentBlock.pos.x) + " " +
-		std::to_string((int)currentBlock.pos.y) + " " +
-		std::to_string((int)currentBlock.pos.z) + "  "
-	);
-
 	bool lockedOntoBlock = this->aimForBlock(currentBlock);
 
 	if (lockedOntoBlock)
 		this->actUponBlock(currentBlock);
 
-	std::this_thread::sleep_for(std::chrono::milliseconds(50));
+	std::this_thread::sleep_for(std::chrono::milliseconds(20));
 }

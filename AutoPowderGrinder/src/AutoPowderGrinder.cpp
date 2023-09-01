@@ -37,10 +37,10 @@ void AutoPowderGrinder::run()
 	}
 }
 
-float apg::clampAngle(float angle, float min, float max)
+double apg::clampAngle(double angle, float min, float max)
 {
 	if (angle >= 90)
 		angle -= 360;
 
-	return std::clamp(angle, min, max);
+	return std::clamp<double>(angle, min, max);
 }

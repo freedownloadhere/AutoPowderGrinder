@@ -96,13 +96,15 @@ namespace apg
 
 	struct ViewAngles
 	{
-		float yaw{ 0 }, pitch{ 0 };
+		double yaw{ 0 }, pitch{ 0 };
 
 		ViewAngles operator+(const ViewAngles& other) const;
 
 		ViewAngles operator-(const ViewAngles& other) const;
 
 		ViewAngles operator/(int divisor) const;
+
+		ViewAngles operator*(int multiplier) const;
 	};
 
 	enum class EnumFacing
@@ -293,5 +295,5 @@ namespace apg
 		bool initialize(const std::shared_ptr<AutoPowderGrinder::Minecraft>& minecraft);
 	};
 
-	float clampAngle(float angle, float min, float max);
+	double clampAngle(double angle, float min, float max);
 }
