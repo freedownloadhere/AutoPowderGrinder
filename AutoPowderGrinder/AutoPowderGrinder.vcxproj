@@ -157,10 +157,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\AstarVector3.cpp" />
     <ClCompile Include="src\AutoPowderGrinder.cpp" />
     <ClCompile Include="src\Block.cpp" />
     <ClCompile Include="src\dllmain.cpp" />
     <ClCompile Include="src\Minecraft.cpp" />
+    <ClCompile Include="src\Pathfinder.cpp" />
     <ClCompile Include="src\Player.cpp" />
     <ClCompile Include="src\Vector3.cpp" />
     <ClCompile Include="src\BlockManager.cpp" />

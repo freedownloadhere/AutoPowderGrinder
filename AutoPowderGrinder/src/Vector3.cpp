@@ -2,6 +2,16 @@
 
 using namespace apg;
 
+Vector3::Vector3()
+{
+
+}
+
+Vector3::Vector3(double x, double y, double z) : x(x), y(y), z(z)
+{
+
+}
+
 double Vector3::distance(const Vector3& pos1, const Vector3& pos2)
 {
 	return 
@@ -27,13 +37,13 @@ bool Vector3::operator!=(const Vector3& other) const
 
 Vector3 Vector3::operator+(const Vector3& other) const
 {
-	Vector3 result = { this->x + other.x, this->y + other.y, this->z + other.z };
+	Vector3 result{ this->x + other.x, this->y + other.y, this->z + other.z };
 	return result;
 }
 
 Vector3 Vector3::operator-(const Vector3& other) const
 {
-	Vector3 result = { this->x - other.x, this->y - other.y, this->z - other.z };
+	Vector3 result{ this->x - other.x, this->y - other.y, this->z - other.z };
 	return result;
 }
 
@@ -50,7 +60,19 @@ bool Vector3::operator<(const Vector3& other) const
 
 Vector3 Vector3::operator*(int multiplier) const
 {
-	Vector3 result = { this->x * multiplier, this->y * multiplier, this->z * multiplier };
+	Vector3 result{ this->x * multiplier, this->y * multiplier, this->z * multiplier };
+	return result;
+}
+
+std::ostream& apg::operator<<(std::ostream& os, const Vector3& vector)
+{
+	os << vector.x << " " << vector.y << " " << vector.z;
+	return os;
+}
+
+std::string Vector3::toString()
+{
+	std::string result{ std::to_string(this->x) + " " + std::to_string(this->y) + " " + std::to_string(this->z) };
 	return result;
 }
 
@@ -70,4 +92,15 @@ void Vector3::truncate2()
 	if (this->x < 0) this->x--;
 	if (this->y < 0) this->y--;
 	if (this->z < 0) this->z--;
+}
+
+Vector3 Vector3::truncate2(const Vector3& vector)
+{
+	Vector3 result((int)vector.x, (int)vector.y, (int)vector.z);
+
+	if (result.x < 0) result.x--;
+	if (result.y < 0) result.y--;
+	if (result.z < 0) result.z--;
+
+	return result;
 }

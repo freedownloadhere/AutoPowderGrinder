@@ -3,16 +3,18 @@
 using namespace apg;
 
 AutoPowderGrinder::BlockManager::BlockManager(const std::shared_ptr<AutoPowderGrinder::Minecraft>& minecraft)
+	: minecraft(minecraft)
 {
-	this->initialized = this->initialize(minecraft);
+	this->initialized = this->initialize();
 
 	if (!this->initialized)
 		std::cout << "Could not properly initialize the BlockManager object\n";
 }
 
-bool AutoPowderGrinder::BlockManager::initialize(const std::shared_ptr<AutoPowderGrinder::Minecraft>& minecraft)
+bool AutoPowderGrinder::BlockManager::initialize()
 {
-	this->minecraft = minecraft;
+	if (this->minecraft == nullptr)
+		return false;
 
 	return true;
 }
@@ -20,12 +22,6 @@ bool AutoPowderGrinder::BlockManager::initialize(const std::shared_ptr<AutoPowde
 bool AutoPowderGrinder::BlockManager::isInitialized()
 {
 	return this->initialized;
-}
-
-Block AutoPowderGrinder::BlockManager::toBlock(const Vector3& pos)
-{
-	Block result{ this->minecraft->world->getBlockID(pos), pos };
-	return result;
 }
 
 bool AutoPowderGrinder::BlockManager::positionIsValid(
@@ -45,7 +41,7 @@ bool AutoPowderGrinder::BlockManager::positionIsValid(
 
 bool AutoPowderGrinder::BlockManager::checkBlockValidity(const Block& block) const
 {
-	if (this->minecraft->world->getBlockID(block.pos) == block.id)
+	if (minecraft->world->getBlockID(block.pos) == block.id)
 		return true;
 	return false;
 }
@@ -68,12 +64,12 @@ bool AutoPowderGrinder::BlockManager::queueIsFull() const
 void AutoPowderGrinder::BlockManager::queueBlocks()
 {
 	std::deque<Vector3> positionsToSearch;
-	EnumFacing facing = this->minecraft->player->getFacing();
-	Vector3 playerPosition = this->minecraft->player->getHeadPosition();
+	EnumFacing facing{ minecraft->player->getFacing() };
+	Vector3 playerPosition{ minecraft->player->getHeadPosition() };
 
 	playerPosition.truncate2();
 
-	Vector3 nextInFront = playerPosition;
+	Vector3 nextInFront{ playerPosition };
 	for(int k = 0; k < 9; ++k)
 	{
 		positionsToSearch.push_back(nextInFront);
@@ -83,18 +79,18 @@ void AutoPowderGrinder::BlockManager::queueBlocks()
 
 	while (!positionsToSearch.empty() && !this->queueIsFull())
 	{
-		Vector3 currentBlockPos = positionsToSearch.front();
+		Vector3 currentBlockPos{ positionsToSearch.front() };
 
 		for (const Vector3& direction : this->directionalVector[(int)facing])
 		{
-			Vector3 neighbouringBlockPos = currentBlockPos + direction;
+			Vector3 neighbouringBlockPos{ currentBlockPos + direction };
 
 			if (this->queueIsFull())
 				continue;
 			if (!this->positionIsValid(neighbouringBlockPos, facing, playerPosition))
 				continue;
 
-			Block neighbouringBlock = this->toBlock(neighbouringBlockPos);
+			Block neighbouringBlock{ Block::toBlock(neighbouringBlockPos) };
 
 			if (this->alreadyInQueue(neighbouringBlock))
 				continue;
@@ -110,14 +106,14 @@ void AutoPowderGrinder::BlockManager::queueBlocks()
 
 bool AutoPowderGrinder::BlockManager::aimForBlock(const Block& targettedBlock)
 {
-	Vector3 localPosition = this->minecraft->player->getHeadPosition();
-	Vector3 blockPosition = targettedBlock.pos + this->getBlockCenter;
-	ViewAngles oldViewAngles = this->minecraft->player->getViewAngles();
+	Vector3 localPosition{ minecraft->player->getHeadPosition() };
+	Vector3 blockPosition{ targettedBlock.pos + this->getBlockCenter };
+	ViewAngles oldViewAngles{ minecraft->player->getViewAngles() };
 
 	if (Vector3::distance(blockPosition, localPosition) > apg::MAX_REACH)
 		return false;
 
-	Vector3 deltaVector = blockPosition - localPosition;
+	Vector3 deltaVector{ blockPosition - localPosition };
 	ViewAngles newViewAngles
 	{
 		-apg::clampAngle(std::atan2(deltaVector.x, deltaVector.z) * apg::TO_RADIANS, -360, 360),
@@ -125,21 +121,21 @@ bool AutoPowderGrinder::BlockManager::aimForBlock(const Block& targettedBlock)
 	};
 	newViewAngles.yaw = apg::clampAngle(newViewAngles.yaw, -180, 180);
 
-	this->minecraft->player->setViewAngles(newViewAngles);
+	minecraft->player->setViewAngles(newViewAngles);
 
 	return true;
 }
 
 void AutoPowderGrinder::BlockManager::actUponBlock(const Block& targettedBlock)
 {
-	if (this->minecraft->player->getLookingAt() != targettedBlock.pos)
+	if (minecraft->player->getLookingAt() != targettedBlock.pos)
 		return;
 
 	if (targettedBlock.toBreak())
-		this->minecraft->player->leftClick();
+		minecraft->player->leftClick();
 
 	else if (targettedBlock.toOpen())
-		this->minecraft->player->rightClick();
+		minecraft->player->rightClick();
 }
 
 void AutoPowderGrinder::BlockManager::cleanUpQueue()
@@ -157,9 +153,9 @@ void AutoPowderGrinder::BlockManager::doRoutine()
 	if (this->blockQueue.empty())
 		return;
 
-	Block currentBlock = this->blockQueue.front();
+	Block currentBlock{ this->blockQueue.front() };
 
-	bool lockedOntoBlock = this->aimForBlock(currentBlock);
+	bool lockedOntoBlock{ this->aimForBlock(currentBlock) };
 
 	if (lockedOntoBlock)
 		this->actUponBlock(currentBlock);

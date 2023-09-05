@@ -401,6 +401,14 @@ EnumFacing AutoPowderGrinder::Minecraft::Player::getFacing()
 	return (EnumFacing)index;
 }
 
+Vector3 AutoPowderGrinder::Minecraft::Player::getBlockBelowPosition()
+{
+	this->updatePosition();
+
+	Vector3 result( (int)this->position.x, (int)this->position.y - 1, (int)this->position.z );
+	return result;
+}
+
 Vector3 AutoPowderGrinder::Minecraft::Player::getFootPosition()
 {
 	this->updatePosition();
@@ -412,7 +420,7 @@ Vector3 AutoPowderGrinder::Minecraft::Player::getHeadPosition()
 {
 	this->updatePosition();
 
-	Vector3 result = { this->position.x, this->position.y + 1, this->position.z };
+	Vector3 result( this->position.x, this->position.y + 1, this->position.z );
 	return result;
 }
 

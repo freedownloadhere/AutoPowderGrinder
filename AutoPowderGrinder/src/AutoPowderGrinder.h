@@ -10,6 +10,7 @@
 #include <math.h>
 #include <queue>
 #include <set>
+#include <list>
 
 namespace apg
 {
@@ -19,27 +20,86 @@ namespace apg
 	class AutoPowderGrinder
 	{
 	public:
-		AutoPowderGrinder();
-
-		void run();
-
-	private:
 		class Minecraft;
 		class Pathfinder;
 		class BlockManager;
 		class ItemManager;
 
+		AutoPowderGrinder();
+
+		void run();
+
+	private:
 		std::shared_ptr<Minecraft> minecraft{ nullptr };
 		std::unique_ptr<BlockManager> blockManager{ nullptr };
-
-		/*
-		std::unique_ptr<ItemManager> itemManager;
-		std::unique_ptr<Pathfinder> pathfinder;*/
+		std::unique_ptr<Pathfinder> pathfinder{ nullptr };
 
 		bool initialized{ false };
 		bool running{ false };
 
 		bool initialize();
+	};
+
+	struct Vector3
+	{
+		Vector3();
+
+		Vector3(double x, double y, double z);
+
+		double x{ 0 }, y{ 0 }, z{ 0 };
+
+		static double distance(const Vector3& pos1, const Vector3& pos2);
+
+		bool operator==(const Vector3& other) const;
+
+		bool operator!=(const Vector3& other) const;
+
+		Vector3 operator+(const Vector3& other) const;
+
+		Vector3 operator-(const Vector3& other) const;
+
+		Vector3 operator*(int multiplier) const;
+
+		bool operator<(const Vector3& other) const;
+
+		friend std::ostream& operator<<(std::ostream& os, const Vector3& vector);
+
+		std::string toString();
+
+		void truncate();
+
+		/// <summary>
+		/// Subtracts 1 from truncated negative values to
+		/// solve an issue with the player position truncation.
+		/// </summary>
+		void truncate2();
+
+		static Vector3 truncate2(const Vector3& vector);
+	};
+	const Vector3 nullvector(-566547550, -566547550, -566547550);
+	const Vector3 zerovector(0, 0, 0);
+
+	struct ViewAngles
+	{
+		double yaw{ 0 }, pitch{ 0 };
+
+		ViewAngles operator+(const ViewAngles& other) const;
+
+		ViewAngles operator-(const ViewAngles& other) const;
+
+		ViewAngles operator/(int divisor) const;
+
+		ViewAngles operator*(int multiplier) const;
+	};
+
+	enum class EnumFacing
+	{
+		DOWN = 0,  // -y (0, -1, 0)
+		UP = 1,	   // +y (0, 1, 0)
+		NORTH = 2, // -z (0, 0, -1)
+		SOUTH = 3, // +z (0, 0, 1)
+		WEST = 4,  // -x (-1, 0, 0)
+		EAST = 5   // +x (1, 0, 0)
 	};
 
 	class AutoPowderGrinder::Minecraft
@@ -65,58 +125,6 @@ namespace apg
 		bool initialize();
 	};
 
-	struct Vector3
-	{
-		double x{ 0 }, y{ 0 }, z{ 0 };
-
-		static double distance(const Vector3& pos1, const Vector3& pos2);
-
-		bool operator==(const Vector3& other) const;
-
-		bool operator!=(const Vector3& other) const;
-
-		Vector3 operator+(const Vector3& other) const;
-
-		Vector3 operator-(const Vector3& other) const;
-
-		Vector3 operator*(int multiplier) const;
-
-		bool operator<(const Vector3& other) const;
-
-		void truncate();
-
-		/// <summary>
-		/// Subtracts 1 from truncated negative values to
-		/// solve an issue with the player position truncation.
-		/// </summary>
-		void truncate2();
-	};
-	const Vector3 nullvector{ -566547550, -566547550, -566547550 };
-	const Vector3 zerovector{ 0, 0, 0 };
-
-	struct ViewAngles
-	{
-		double yaw{ 0 }, pitch{ 0 };
-
-		ViewAngles operator+(const ViewAngles& other) const;
-
-		ViewAngles operator-(const ViewAngles& other) const;
-
-		ViewAngles operator/(int divisor) const;
-
-		ViewAngles operator*(int multiplier) const;
-	};
-
-	enum class EnumFacing
-	{
-		DOWN = 0,  // -y (0, -1, 0)
-		UP = 1,	   // +y (0, 1, 0)
-		NORTH = 2, // -z (0, 0, -1)
-		SOUTH = 3, // +z (0, 0, 1)
-		WEST = 4,  // -x (-1, 0, 0)
-		EAST = 5   // +x (1, 0, 0)
-	};
-
 	class AutoPowderGrinder::Minecraft::Player
 	{
 	public:
@@ -134,6 +142,7 @@ namespace apg
 		std::string getItem(int index);
 		std::string updateAndGetItem(int index);
 		Vector3 getLookingAt();
+		Vector3 getBlockBelowPosition();
 		Vector3 getFootPosition();
 		Vector3 getHeadPosition();
 		EnumFacing getFacing();
@@ -229,13 +238,19 @@ namespace apg
 		int id;
 		Vector3 pos;
 
-		inline static std::set<int> 
+		inline static std::set<int>
 			blocksToBreak = { 1, 14, 15, 16, 21, 56, 73, 74, 129 },
-			blocksToOpen = { 54, 146 };
+			blocksToOpen = { 54, 146 },
+			nonWalkable = { 0, 8, 9, 10, 11 };
+
+		inline static std::shared_ptr<AutoPowderGrinder::Minecraft> minecraft{ nullptr };
+
+		static Block toBlock(const Vector3& coordinates);
 
 		bool toBreak() const;
 		bool toOpen() const;
 		bool isAir() const;
+		bool isWalkable() const;
 	};
 
 	class AutoPowderGrinder::BlockManager
@@ -263,16 +278,16 @@ namespace apg
 		};
 		const Vector3 directionalVector[6][6] =
 		{
-			{zerovector},															// DOWN (do not access)
-			{zerovector},															// UP (do not access)
+			{},															// DOWN (do not access)
+			{},															// UP (do not access)
 			{zerovector, enumFacingVec[4], enumFacingVec[4] + enumFacingVec[0], enumFacingVec[0], enumFacingVec[5] + enumFacingVec[0], enumFacingVec[4]},	// NORTH
 			{zerovector, enumFacingVec[5], enumFacingVec[5] + enumFacingVec[0], enumFacingVec[0], enumFacingVec[4] + enumFacingVec[0], enumFacingVec[4]},	// SOUTH
 			{zerovector, enumFacingVec[3], enumFacingVec[3] + enumFacingVec[0], enumFacingVec[0], enumFacingVec[2] + enumFacingVec[0], enumFacingVec[2]},	// WEST
 			{zerovector, enumFacingVec[2], enumFacingVec[2] + enumFacingVec[0], enumFacingVec[0], enumFacingVec[3] + enumFacingVec[0], enumFacingVec[3]}	// EAST
 		};
 		const Vector3 getBlockCenter = { 0.5, 0, 0.5 };
+		std::shared_ptr<AutoPowderGrinder::Minecraft> minecraft;
 
-		std::shared_ptr<AutoPowderGrinder::Minecraft> minecraft{ nullptr };
 		std::deque<Block> blockQueue;
 
 		bool positionIsValid(
@@ -284,16 +299,45 @@ namespace apg
 		bool alreadyInQueue(const Block& block) const;
 		bool queueIsFull() const;
 
-		Block toBlock(const Vector3& pos);
-
 		void queueBlocks();
 		void cleanUpQueue();
 		bool aimForBlock(const Block& targettedBlock);
 		void actUponBlock(const Block& targettedBlock);
 
 		bool initialized{ false };
-		bool initialize(const std::shared_ptr<AutoPowderGrinder::Minecraft>& minecraft);
+		bool initialize();
 	};
 
 	double clampAngle(double angle, float min, float max);
+
+	struct AstarVector3 : public Vector3
+	{
+		int G{ 0 }, H{ 0 }, F{ 0 };
+		std::shared_ptr<AstarVector3> connection{ nullptr };
+
+		void setG(int value);
+		void setH(int value);
+	};
+
+	class AutoPowderGrinder::Pathfinder
+	{
+	public:
+		Pathfinder();
+
+		std::list<Vector3> makePath(const Vector3& start, const Vector3& end);
+		std::list<EnumFacing> makeIndications(const std::list<Vector3>& path);
+
+		bool isInitialized();
+	private:
+		const Vector3 directionalVector[4] =
+		{
+			{0, 0, -1},
+			{0, 0, 1},
+			{-1, 0, 0},
+			{1, 0, 0}
+		};
+
+		bool initialized{ false };
+		bool initialize();
+	};
 }

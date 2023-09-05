@@ -10,7 +10,7 @@ using namespace apg;
 //
 //	if (lhsIsChest && rhsIsChest)
 //	{
-//		/*Vector3 playerPosition = this->minecraft->player->getPosition();
+//		/*Vector3 playerPosition = minecraft->player->getPosition();
 //		return Vector3::distance(playerPosition, lhs.pos) > Vector3::distance(playerPosition, rhs.pos);*/
 //		return true;
 //	}
@@ -35,4 +35,15 @@ bool Block::toOpen() const
 bool Block::isAir() const
 {
 	return this->id == 0;
+}
+
+bool Block::isWalkable() const
+{
+	return !this->blocksToOpen.contains(this->id);
+}
+
+Block Block::toBlock(const Vector3& coordinates)
+{
+	Block result{ Block::minecraft->world->getBlockID(coordinates), coordinates };
+	return result;
 }
