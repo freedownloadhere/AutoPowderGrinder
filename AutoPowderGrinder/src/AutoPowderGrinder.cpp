@@ -55,23 +55,24 @@ void AutoPowderGrinder::run()
 			end{ 0, 3, 0 };
 
 		auto path = this->pathfinder->makePath(start, end);
-		auto ind = this->pathfinder->makeIndications(path);
-		std::string indications = "";
 
-		this->minecraft->player->sendChatMessage("§7Follow this path:\n ");
-		for (const auto& indication : ind)
+		for (const auto& i : path)
 		{
-			switch (indication)
-			{
-			case EnumFacing::NORTH: indications += "North; "; break;
-			case EnumFacing::SOUTH: indications += "South; "; break;
-			case EnumFacing::WEST: indications += "West; "; break;
-			case EnumFacing::EAST: indications += "East; "; break;
-			}
+			this->minecraft->player->sendMessageFromPlayer(
+				"/setblock " + i.toString() + " redstone_block"
+			);
+			std::this_thread::sleep_for(std::chrono::milliseconds(500));
 		}
-		this->minecraft->player->sendChatMessage(indications);
 
-		std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+		for (const auto& i : path)
+		{
+			this->minecraft->player->sendMessageFromPlayer(
+				"/setblock " + i.toString() + " stone"
+			);
+			std::this_thread::sleep_for(std::chrono::milliseconds(500));
+		}
+
+		std::cout << "Found a path\n";
 	}
 }
 

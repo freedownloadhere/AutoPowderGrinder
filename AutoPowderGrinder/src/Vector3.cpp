@@ -70,9 +70,9 @@ std::ostream& apg::operator<<(std::ostream& os, const Vector3& vector)
 	return os;
 }
 
-std::string Vector3::toString()
+std::string Vector3::toString() const
 {
-	std::string result{ std::to_string(this->x) + " " + std::to_string(this->y) + " " + std::to_string(this->z) };
+	std::string result{ std::to_string((int)this->x) + " " + std::to_string((int)this->y) + " " + std::to_string((int)this->z) };
 	return result;
 }
 

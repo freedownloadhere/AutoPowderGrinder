@@ -231,6 +231,13 @@ bool AutoPowderGrinder::Minecraft::Player::initialize(
 		return false;
 	}
 
+	this->sendChatMessage = this->env->GetMethodID(this->EntityPlayerSPClass, "e", "(Ljava/lang/String;)V");
+	if (this->sendChatMessage == nullptr)
+	{
+		std::cout << "Could not get the sendChatMessage method\n";
+		return false;
+	}
+
 	AutoPowderGrinder::Minecraft::Player::leftClickInput[0].type = INPUT_MOUSE;
 	AutoPowderGrinder::Minecraft::Player::leftClickInput[0].mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
 	AutoPowderGrinder::Minecraft::Player::leftClickInput[1].type = INPUT_MOUSE;
@@ -279,30 +286,35 @@ bool AutoPowderGrinder::Minecraft::Player::isInitialized()
 	return this->initialized;
 }
 
-void AutoPowderGrinder::Minecraft::Player::sendChatMessage(const std::string& message)
+void AutoPowderGrinder::Minecraft::Player::sendMessageToPlayer(const std::string& message)
 {
-	if (!this->initialized)
-	{
-		std::cout << "The player object was not initialized properly\n";
-		return;
-	}
-
 	jobject chatComp{ nullptr };
 	jstring text{ nullptr };
 
-	text = env->NewStringUTF(message.c_str());
+	text = this->env->NewStringUTF(message.c_str());
 
-	chatComp = env->NewObject(chatCompClass, this->messageConstructor, text);
+	chatComp = this->env->NewObject(chatCompClass, this->messageConstructor, text);
 	if (chatComp == nullptr)
 	{
 		std::cout << "Failed to create chat component object\n";
 		return;
 	}
 
-	env->CallVoidMethod(this->mcThePlayerInstance, this->addChatMessage, chatComp);
+	this->env->CallVoidMethod(this->mcThePlayerInstance, this->addChatMessage, chatComp);
 
-	env->DeleteLocalRef(text);
-	env->DeleteLocalRef(chatComp);
+	this->env->DeleteLocalRef(text);
+	this->env->DeleteLocalRef(chatComp);
+}
+
+void AutoPowderGrinder::Minecraft::Player::sendMessageFromPlayer(const std::string& message)
+{
+	jstring text{ nullptr };
+
+	text = this->env->NewStringUTF(message.c_str());
+
+	this->env->CallVoidMethod(this->mcThePlayerInstance, this->sendChatMessage, text);
+
+	this->env->DeleteLocalRef(text);
 }
 
 void AutoPowderGrinder::Minecraft::Player::updateMainInventory()
@@ -405,7 +417,9 @@ Vector3 AutoPowderGrinder::Minecraft::Player::getBlockBelowPosition()
 {
 	this->updatePosition();
 
-	Vector3 result( (int)this->position.x, (int)this->position.y - 1, (int)this->position.z );
+	Vector3 result( this->position.x, this->position.y - 1, this->position.z );
+	result.truncate2();
+
 	return result;
 }
 

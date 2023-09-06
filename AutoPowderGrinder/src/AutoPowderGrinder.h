@@ -10,6 +10,8 @@
 #include <math.h>
 #include <queue>
 #include <set>
+#include <map>
+#include <random>
 #include <list>
 
 namespace apg
@@ -64,7 +66,7 @@ namespace apg
 
 		friend std::ostream& operator<<(std::ostream& os, const Vector3& vector);
 
-		std::string toString();
+		std::string toString() const;
 
 		void truncate();
 
@@ -135,7 +137,8 @@ namespace apg
 		);
 
 		bool isInitialized();
-		void sendChatMessage(const std::string& message);
+		void sendMessageToPlayer(const std::string& message);
+		void sendMessageFromPlayer(const std::string& message);
 		void updateMainInventory();
 		void updatePosition();
 		void updateViewAngles();
@@ -172,6 +175,7 @@ namespace apg
 		jmethodID
 			getBlockPos{ nullptr },
 			addChatMessage{ nullptr },
+			sendChatMessage{ nullptr },
 			messageConstructor{ nullptr },
 			blockPosX{ nullptr },
 			blockPosY{ nullptr },
@@ -312,11 +316,13 @@ namespace apg
 
 	struct AstarVector3 : public Vector3
 	{
-		int G{ 0 }, H{ 0 }, F{ 0 };
+		float G{ 999999 }, H{ 0 }, F{ 0 };
 		std::shared_ptr<AstarVector3> connection{ nullptr };
 
-		void setG(int value);
-		void setH(int value);
+		void setG(float value);
+		void setH(float value);
+
+		bool operator()(const std::shared_ptr<AstarVector3>& lhs, const std::shared_ptr<AstarVector3>& rhs) const;
 	};
 
 	class AutoPowderGrinder::Pathfinder
@@ -336,6 +342,8 @@ namespace apg
 			{-1, 0, 0},
 			{1, 0, 0}
 		};
+
+		bool listContains(const std::shared_ptr<AstarVector3>& element, const std::deque<std::shared_ptr<AstarVector3>>& list);
 
 		bool initialized{ false };
 		bool initialize();
