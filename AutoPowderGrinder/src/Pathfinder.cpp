@@ -35,25 +35,23 @@ bool AutoPowderGrinder::Pathfinder::listContains(
 
 std::list<Vector3> AutoPowderGrinder::Pathfinder::makePath(const Vector3& start, const Vector3& end)
 {
-	std::deque<std::shared_ptr<AstarVector3>> queue;
+	std::deque<std::shared_ptr<AstarVector3>> heapToSearch;
 	std::map<AstarVector3, bool> processed;
 
 	std::shared_ptr<AstarVector3> current{ std::make_shared<AstarVector3>(start) };
 	current->setG(0);
-	current->setH(Vector3::distance(*current, end));
+	current->setH((int)Vector3::distance(*current, end));
 
-	queue.push_back( current );
+	heapToSearch.push_back( current );
 	processed.insert({ *current, false });
 
-	while (!queue.empty())
+	while (!heapToSearch.empty())
 	{
-		std::cout << "Looking at " << *current << " , G: " << current->G << " H: " << current->H << " P: " << processed[*current] << "\n";
+		std::make_heap(heapToSearch.begin(), heapToSearch.end(), AstarVector3());
 
-		std::make_heap(queue.begin(), queue.end(), AstarVector3());
+		current = heapToSearch.front();
 
-		current = queue.front();
-
-		queue.pop_front();
+		heapToSearch.pop_front();
 		processed[*current] = true;
 
 		if (*current == end)
@@ -77,17 +75,17 @@ std::list<Vector3> AutoPowderGrinder::Pathfinder::makePath(const Vector3& start,
 			if (processed[*neighbour] == true || !Block::toBlock(*neighbour).isWalkable())
 				continue;
 
-			if (neighbour->G <= current->G + 1)
-				continue;
-			
-			neighbour->setG(current->G + 1);
-			neighbour->connection = current;
+			if (neighbour->G > current->G + 1)
+			{
+				neighbour->setG(current->G + 1);
+				neighbour->connection = current;
+			}
 
-			if (this->listContains(neighbour, queue))
-				continue;
-
-			neighbour->setH(Vector3::distance(*current, end));
-			queue.push_back(neighbour);
+			if (!this->listContains(neighbour, heapToSearch))
+			{
+				neighbour->setH((int)Vector3::distance(*current, end));
+				heapToSearch.push_back(neighbour);
+			}
 		}
 	}
 

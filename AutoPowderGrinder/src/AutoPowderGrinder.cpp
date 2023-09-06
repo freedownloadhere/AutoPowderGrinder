@@ -56,7 +56,7 @@ void AutoPowderGrinder::run()
 
 		auto path = this->pathfinder->makePath(start, end);
 
-		for (const auto& i : path)
+		/*for (const auto& i : path)
 		{
 			this->minecraft->player->sendMessageFromPlayer(
 				"/setblock " + i.toString() + " redstone_block"
@@ -70,9 +70,10 @@ void AutoPowderGrinder::run()
 				"/setblock " + i.toString() + " stone"
 			);
 			std::this_thread::sleep_for(std::chrono::milliseconds(500));
-		}
+		}*/
 
 		std::cout << "Found a path\n";
+		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 	}
 }
 
