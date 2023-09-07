@@ -2,16 +2,18 @@
 
 using namespace apg;
 
-AutoPowderGrinder::Pathfinder::Pathfinder()
+AutoPowderGrinder::Pathfinder::Pathfinder(const std::shared_ptr<Minecraft>& minecraft)
 {
-	this->initialized = this->initialize();
+	this->initialized = this->initialize(minecraft);
 
 	if (!this->initialized)
 		std::cout << "Failed to initialize Pathfinder class\n";
 }
 
-bool AutoPowderGrinder::Pathfinder::initialize()
+bool AutoPowderGrinder::Pathfinder::initialize(const std::shared_ptr<Minecraft>& minecraft)
 {
+	this->minecraft = minecraft;
+
 	return true;
 }
 
@@ -22,10 +24,10 @@ bool AutoPowderGrinder::Pathfinder::isInitialized()
 
 bool AutoPowderGrinder::Pathfinder::listContains(
 	const std::shared_ptr<AstarVector3>& element, 
-	const std::deque<std::shared_ptr<AstarVector3>>& list
+	const std::deque<std::shared_ptr<AstarVector3>>& heap
 )
 {
-	for (const auto& i : list)
+	for (const auto& i : heap)
 	{
 		if (i == element)
 			return true;
@@ -33,14 +35,32 @@ bool AutoPowderGrinder::Pathfinder::listContains(
 	return false;
 }
 
-std::list<Vector3> AutoPowderGrinder::Pathfinder::makePath(const Vector3& start, const Vector3& end)
+bool AutoPowderGrinder::Pathfinder::isWalkable(const std::shared_ptr<AstarVector3>& coordinates)
 {
+	bool result{
+		!Block::nonWalkable.contains(this->minecraft->world->getBlockID(*coordinates)) &&
+		this->minecraft->world->getBlockID(*coordinates + Vector3{ 0, 1, 0 }) == 0 &&
+		this->minecraft->world->getBlockID(*coordinates + Vector3{ 0, 2, 0 }) == 0
+	};
+
+	std::cout << result << "\n";
+
+	return result;
+	
+	// Ehh maybe inefficient! Look at those method calls mate. Ugh. Total crap.
+}
+
+std::list<Vector3> AutoPowderGrinder::Pathfinder::makePath(const Vector3& start, const Vector3& target)
+{
+	// Can be optimized in space and time complexity.
+	// Mostly meant to just test if it works really. And to pretend I did something useful.
+
 	std::deque<std::shared_ptr<AstarVector3>> heapToSearch;
 	std::map<AstarVector3, bool> processed;
 
 	std::shared_ptr<AstarVector3> current{ std::make_shared<AstarVector3>(start) };
 	current->setG(0);
-	current->setH((int)Vector3::distance(*current, end));
+	current->setH((int)Vector3::distance(*current, target));
 
 	heapToSearch.push_back( current );
 	processed.insert({ *current, false });
@@ -51,10 +71,12 @@ std::list<Vector3> AutoPowderGrinder::Pathfinder::makePath(const Vector3& start,
 
 		current = heapToSearch.front();
 
+		std::cout << *current << "\n";
+
 		heapToSearch.pop_front();
 		processed[*current] = true;
 
-		if (*current == end)
+		if (*current == target)
 		{
 			std::list<Vector3> result;
 
@@ -72,7 +94,7 @@ std::list<Vector3> AutoPowderGrinder::Pathfinder::makePath(const Vector3& start,
 		{
 			std::shared_ptr<AstarVector3> neighbour{ std::make_shared<AstarVector3>(*current + k) };
 			
-			if (processed[*neighbour] == true || !Block::toBlock(*neighbour).isWalkable())
+			if (processed[*neighbour] == true || !this->isWalkable(neighbour))
 				continue;
 
 			if (neighbour->G > current->G + 1)
@@ -83,7 +105,7 @@ std::list<Vector3> AutoPowderGrinder::Pathfinder::makePath(const Vector3& start,
 
 			if (!this->listContains(neighbour, heapToSearch))
 			{
-				neighbour->setH((int)Vector3::distance(*current, end));
+				neighbour->setH((int)Vector3::distance(*current, target));
 				heapToSearch.push_back(neighbour);
 			}
 		}
@@ -92,30 +114,14 @@ std::list<Vector3> AutoPowderGrinder::Pathfinder::makePath(const Vector3& start,
 	return {};
 }
 
-std::list<EnumFacing> AutoPowderGrinder::Pathfinder::makeIndications(const std::list<Vector3>& path)
+void AutoPowderGrinder::Pathfinder::moveThroughPath(const std::list<Vector3>& path)
 {
-	if (path.size() < 2)
-		return {};
-
-	std::list<EnumFacing> result;
-
 	std::list<Vector3>::const_iterator it1, it2;
-	it1 = it2 = path.begin();
-	++it2;
+	it1 = path.begin();
+	it2 = it1++;
 
 	while (it2 != path.end())
 	{
-		Vector3 delta = *it2 - *it1;
 
-		for (int k = 0; k < 4; ++k)
-			if (delta == this->directionalVector[k])
-			{
-				result.push_back((EnumFacing)(k + 2));
-			}
-
-		++it1;
-		++it2;
 	}
-
-	return result;
 }

@@ -30,7 +30,7 @@ bool AutoPowderGrinder::initialize()
 		return false;
 	}
 
-	this->pathfinder = std::make_unique<Pathfinder>();
+	this->pathfinder = std::make_unique<Pathfinder>(minecraft);
 	if (!this->pathfinder->isInitialized())
 	{
 		std::cout << "An error occured while initializing Pathfinder\n";
@@ -52,11 +52,11 @@ void AutoPowderGrinder::run()
 	{
 		Vector3
 			start = this->minecraft->player->getBlockBelowPosition(),
-			end{ 0, 3, 0 };
+			end{ -1389, 3, 439 };
 
 		auto path = this->pathfinder->makePath(start, end);
 
-		/*for (const auto& i : path)
+		for (const auto& i : path)
 		{
 			this->minecraft->player->sendMessageFromPlayer(
 				"/setblock " + i.toString() + " redstone_block"
@@ -70,9 +70,8 @@ void AutoPowderGrinder::run()
 				"/setblock " + i.toString() + " stone"
 			);
 			std::this_thread::sleep_for(std::chrono::milliseconds(500));
-		}*/
+		}
 
-		std::cout << "Found a path\n";
 		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 	}
 }

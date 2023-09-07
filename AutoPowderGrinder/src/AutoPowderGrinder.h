@@ -328,10 +328,11 @@ namespace apg
 	class AutoPowderGrinder::Pathfinder
 	{
 	public:
-		Pathfinder();
+		Pathfinder(const std::shared_ptr<Minecraft>& minecraft);
 
-		std::list<Vector3> makePath(const Vector3& start, const Vector3& end);
-		std::list<EnumFacing> makeIndications(const std::list<Vector3>& path);
+		void moveTo(const Vector3& target);
+		std::list<Vector3> makePath(const Vector3& start, const Vector3& target);
+		void moveThroughPath(const std::list<Vector3>& path);
 
 		bool isInitialized();
 	private:
@@ -343,9 +344,12 @@ namespace apg
 			{1, 0, 0}
 		};
 
-		bool listContains(const std::shared_ptr<AstarVector3>& element, const std::deque<std::shared_ptr<AstarVector3>>& list);
+		std::shared_ptr<Minecraft> minecraft{ nullptr };
+
+		bool listContains(const std::shared_ptr<AstarVector3>& element, const std::deque<std::shared_ptr<AstarVector3>>& heap);
+		bool isWalkable(const std::shared_ptr<AstarVector3>& coordinates);
 
 		bool initialized{ false };
-		bool initialize();
+		bool initialize(const std::shared_ptr<Minecraft>& minecraft);
 	};
 }
