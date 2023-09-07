@@ -38,12 +38,10 @@ bool AutoPowderGrinder::Pathfinder::listContains(
 bool AutoPowderGrinder::Pathfinder::isWalkable(const std::shared_ptr<AstarVector3>& coordinates)
 {
 	bool result{
-		!Block::nonWalkable.contains(this->minecraft->world->getBlockID(*coordinates)) &&
+		!Block::nonSolid.contains(this->minecraft->world->getBlockID(*coordinates)) &&
 		this->minecraft->world->getBlockID(*coordinates + Vector3{ 0, 1, 0 }) == 0 &&
 		this->minecraft->world->getBlockID(*coordinates + Vector3{ 0, 2, 0 }) == 0
 	};
-
-	std::cout << result << "\n";
 
 	return result;
 	
@@ -71,8 +69,6 @@ std::list<Vector3> AutoPowderGrinder::Pathfinder::makePath(const Vector3& start,
 
 		current = heapToSearch.front();
 
-		std::cout << *current << "\n";
-
 		heapToSearch.pop_front();
 		processed[*current] = true;
 
@@ -93,13 +89,14 @@ std::list<Vector3> AutoPowderGrinder::Pathfinder::makePath(const Vector3& start,
 		for (const auto& k : this->directionalVector)
 		{
 			std::shared_ptr<AstarVector3> neighbour{ std::make_shared<AstarVector3>(*current + k) };
-			
+			float distanceToNeighbour = (current->y == neighbour->y ? current->G + 1 : current->G + apg::SQRT_2);
+
 			if (processed[*neighbour] == true || !this->isWalkable(neighbour))
 				continue;
 
-			if (neighbour->G > current->G + 1)
+			if (neighbour->G > distanceToNeighbour)
 			{
-				neighbour->setG(current->G + 1);
+				neighbour->setG(distanceToNeighbour);
 				neighbour->connection = current;
 			}
 

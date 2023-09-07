@@ -52,7 +52,7 @@ void AutoPowderGrinder::run()
 	{
 		Vector3
 			start = this->minecraft->player->getBlockBelowPosition(),
-			end{ -1389, 3, 439 };
+			end{ 1090, 67, -1030 };
 
 		auto path = this->pathfinder->makePath(start, end);
 

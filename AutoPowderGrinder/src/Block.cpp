@@ -39,7 +39,7 @@ bool Block::isAir() const
 
 bool Block::isWalkable() const
 {
-	return !this->nonWalkable.contains(this->id);
+	return !this->nonSolid.contains(this->id);
 }
 
 Block Block::toBlock(const Vector3& coordinates)

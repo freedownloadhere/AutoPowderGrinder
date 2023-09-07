@@ -74,7 +74,7 @@ void AutoPowderGrinder::BlockManager::queueBlocks()
 	{
 		positionsToSearch.push_back(nextInFront);
 
-		nextInFront = nextInFront + this->enumFacingVec[(int)facing];
+		nextInFront = nextInFront + apg::enumFacingVec[(int)facing];
 	}
 
 	while (!positionsToSearch.empty() && !this->queueIsFull())

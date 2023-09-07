@@ -18,6 +18,7 @@ namespace apg
 {
 	constexpr double TO_RADIANS{ 57.29578049044297 }; // Pi over 180.
 	constexpr int MAX_REACH{ 4 };
+	constexpr double SQRT_2{ 1.414213 };
 
 	class AutoPowderGrinder
 	{
@@ -80,6 +81,15 @@ namespace apg
 	};
 	const Vector3 nullvector(-566547550, -566547550, -566547550);
 	const Vector3 zerovector(0, 0, 0);
+	const Vector3 enumFacingVec[6] =
+	{
+		{0, -1, 0},	// DOWN
+		{0, 1, 0},  // UP
+		{0, 0, -1},	// NORTH
+		{0, 0, 1},	// SOUTH
+		{-1, 0, 0},	// WEST
+		{1, 0, 0}	// EAST
+	};
 
 	struct ViewAngles
 	{
@@ -245,7 +255,7 @@ namespace apg
 		inline static std::set<int>
 			blocksToBreak = { 1, 14, 15, 16, 21, 56, 73, 74, 129 },
 			blocksToOpen = { 54, 146 },
-			nonWalkable = { 0, 8, 9, 10, 11 };
+			nonSolid = { 0, 8, 9, 10, 11 };
 
 		inline static std::shared_ptr<AutoPowderGrinder::Minecraft> minecraft{ nullptr };
 
@@ -271,15 +281,6 @@ namespace apg
 			MAX_SEARCH_DISTANCE_FRONT = 7,
 			MAX_SEARCH_DISTANCE_SIDE = 3;
 
-		const Vector3 enumFacingVec[6] =
-		{
-			{0, -1, 0},	// DOWN
-			{0, 1, 0},  // UP
-			{0, 0, -1},	// NORTH
-			{0, 0, 1},	// SOUTH
-			{-1, 0, 0},	// WEST
-			{1, 0, 0}	// EAST
-		};
 		const Vector3 directionalVector[6][6] =
 		{
 			{},															// DOWN (do not access)
@@ -336,14 +337,21 @@ namespace apg
 
 		bool isInitialized();
 	private:
-		const Vector3 directionalVector[4] =
+		const Vector3 directionalVector[12] =
 		{
-			{0, 0, -1},
-			{0, 0, 1},
-			{-1, 0, 0},
-			{1, 0, 0}
+			{0, 0, -1}, // NORTH
+			{1, 0, 0},  // EAST
+			{0, 0, 1},  // SOUTH
+			{-1, 0, 0}, // WEST
+			{0, -1, -1}, // NORTH + DOWN
+			{1, -1, 0},  // EAST + DOWN
+			{0, -1, 1},  // SOUTH + DOWN
+			{-1, -1, 0}, // WEST + DOWN
+			{0, 1, -1}, // NORTH + UP
+			{1, 1, 0},  // EAST + UP
+			{0, 1, 1},  // SOUTH + UP
+			{-1, 1, 0}, // WEST + UP
 		};
-
 		std::shared_ptr<Minecraft> minecraft{ nullptr };
 
 		bool listContains(const std::shared_ptr<AstarVector3>& element, const std::deque<std::shared_ptr<AstarVector3>>& heap);
