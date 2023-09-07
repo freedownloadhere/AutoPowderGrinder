@@ -65,20 +65,6 @@ std::list<Vector3> AutoPowderGrinder::Pathfinder::makePath(const Vector3& start,
 	{
 		current = heapToSearch.front();
 
-		//// Debug start
-		//if (GetAsyncKeyState(VK_NUMPAD0))
-		//	break;
-
-		//std::cout << start - *current << "\n";
-		//
-		//float minF{ 999999 };
-		//for (const auto& i : heapToSearch)
-		//	if (i->F < minF)
-		//		minF = i->F;
-
-		//std::cout << "Min F: " << minF << " Current F: " << current->F << "\n";
-		//// Debug end
-
 		std::pop_heap(heapToSearch.begin(), heapToSearch.end(), AstarVector3());
 		heapToSearch.pop_back();
 		processed.insert(*current);
@@ -96,8 +82,6 @@ std::list<Vector3> AutoPowderGrinder::Pathfinder::makePath(const Vector3& start,
 
 			return result;
 		}
-
-		//std::shuffle(this->directionalVector, this->directionalVector + 12, this->shuffler);
 
 		for (const auto& k : this->directionalVector)
 		{
