@@ -18,7 +18,9 @@ bool AstarVector3::operator()(const std::shared_ptr<AstarVector3>& lhs, const st
 {
 	if (lhs->F > rhs->F)
 		return true;
-	if (lhs->F == rhs->F && lhs->H > rhs->H)
+
+	else if (lhs->F == rhs->F && lhs->H > rhs->H)
 		return true;
+
 	return false;
 }

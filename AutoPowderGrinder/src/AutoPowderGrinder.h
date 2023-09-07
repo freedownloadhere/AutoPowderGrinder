@@ -13,6 +13,8 @@
 #include <map>
 #include <random>
 #include <list>
+#include <algorithm>
+#include <chrono>
 
 namespace apg
 {
@@ -49,9 +51,11 @@ namespace apg
 
 		Vector3(double x, double y, double z);
 
-		double x{ 0 }, y{ 0 }, z{ 0 };
+		float x{ 0 }, y{ 0 }, z{ 0 };
 
-		static double distance(const Vector3& pos1, const Vector3& pos2);
+		static float euclideanDistance(const Vector3& pos1, const Vector3& pos2);
+
+		static float manhattanDistance(const Vector3& pos1, const Vector3& pos2);
 
 		bool operator==(const Vector3& other) const;
 
@@ -345,7 +349,7 @@ namespace apg
 
 		bool isInitialized();
 	private:
-		const Vector3 directionalVector[12] =
+		Vector3 directionalVector[12] =
 		{
 			{0, 0, -1}, // NORTH
 			{1, 0, 0},  // EAST
@@ -360,9 +364,15 @@ namespace apg
 			{0, 1, 1},  // SOUTH + UP
 			{-1, 1, 0}, // WEST + UP
 		};
+		const Vector3 upOne{ 0, 1, 0 };
+		const Vector3 upTwo{ 0, 2, 0 };
+
 		std::shared_ptr<Minecraft> minecraft{ nullptr };
 
-		bool listContains(const std::shared_ptr<AstarVector3>& element, const std::deque<std::shared_ptr<AstarVector3>>& heap);
+		std::mt19937 shuffler;
+		std::map<Vector3, bool> walkableMap;
+
+		bool listContains(const std::shared_ptr<AstarVector3>& element, const std::vector<std::shared_ptr<AstarVector3>>& heap);
 		bool isWalkable(const std::shared_ptr<AstarVector3>& coordinates);
 
 		bool initialized{ false };

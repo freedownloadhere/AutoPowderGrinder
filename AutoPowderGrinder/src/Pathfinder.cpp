@@ -24,7 +24,7 @@ bool AutoPowderGrinder::Pathfinder::isInitialized()
 
 bool AutoPowderGrinder::Pathfinder::listContains(
 	const std::shared_ptr<AstarVector3>& element, 
-	const std::deque<std::shared_ptr<AstarVector3>>& heap
+	const std::vector<std::shared_ptr<AstarVector3>>& heap
 )
 {
 	for (const auto& i : heap)
@@ -37,40 +37,51 @@ bool AutoPowderGrinder::Pathfinder::listContains(
 
 bool AutoPowderGrinder::Pathfinder::isWalkable(const std::shared_ptr<AstarVector3>& coordinates)
 {
-	bool result{
-		!Block::nonSolid.contains(this->minecraft->world->getBlockID(*coordinates)) &&
-		this->minecraft->world->getBlockID(*coordinates + Vector3{ 0, 1, 0 }) == 0 &&
-		this->minecraft->world->getBlockID(*coordinates + Vector3{ 0, 2, 0 }) == 0
-	};
+	Vector3 v[3] = { *coordinates, *coordinates + this->upOne, *coordinates + this->upTwo };
 
-	return result;
-	
-	// Ehh maybe inefficient! Look at those method calls mate. Ugh. Total crap.
+	for (const auto& i : v)
+		if (!this->walkableMap.contains(i))
+			this->walkableMap[i] = !Block::nonSolid.contains(this->minecraft->world->getBlockID(i));
+
+	return(
+		this->walkableMap[v[0]] && !this->walkableMap[v[1]] && !this->walkableMap[v[2]]
+		);
 }
 
 std::list<Vector3> AutoPowderGrinder::Pathfinder::makePath(const Vector3& start, const Vector3& target)
 {
-	// Can be optimized in space and time complexity.
-	// Mostly meant to just test if it works really. And to pretend I did something useful.
+	this->walkableMap.clear();
 
-	std::deque<std::shared_ptr<AstarVector3>> heapToSearch;
-	std::map<AstarVector3, bool> processed;
+	std::vector<std::shared_ptr<AstarVector3>> heapToSearch;
+	std::set<AstarVector3> processed;
 
 	std::shared_ptr<AstarVector3> current{ std::make_shared<AstarVector3>(start) };
 	current->setG(0);
-	current->setH((int)Vector3::distance(*current, target));
+	current->setH(Vector3::manhattanDistance(*current, target));
 
 	heapToSearch.push_back( current );
-	processed.insert({ *current, false });
 
 	while (!heapToSearch.empty())
 	{
-		std::make_heap(heapToSearch.begin(), heapToSearch.end(), AstarVector3());
-
 		current = heapToSearch.front();
 
-		heapToSearch.pop_front();
-		processed[*current] = true;
+		//// Debug start
+		//if (GetAsyncKeyState(VK_NUMPAD0))
+		//	break;
+
+		//std::cout << start - *current << "\n";
+		//
+		//float minF{ 999999 };
+		//for (const auto& i : heapToSearch)
+		//	if (i->F < minF)
+		//		minF = i->F;
+
+		//std::cout << "Min F: " << minF << " Current F: " << current->F << "\n";
+		//// Debug end
+
+		std::pop_heap(heapToSearch.begin(), heapToSearch.end(), AstarVector3());
+		heapToSearch.pop_back();
+		processed.insert(*current);
 
 		if (*current == target)
 		{
@@ -86,12 +97,17 @@ std::list<Vector3> AutoPowderGrinder::Pathfinder::makePath(const Vector3& start,
 			return result;
 		}
 
+		//std::shuffle(this->directionalVector, this->directionalVector + 12, this->shuffler);
+
 		for (const auto& k : this->directionalVector)
 		{
 			std::shared_ptr<AstarVector3> neighbour{ std::make_shared<AstarVector3>(*current + k) };
 			float distanceToNeighbour = (current->y == neighbour->y ? current->G + 1 : current->G + apg::SQRT_2);
 
-			if (processed[*neighbour] == true || !this->isWalkable(neighbour))
+			if (!this->isWalkable(neighbour))
+				continue;
+
+			if (processed.contains(*neighbour))
 				continue;
 
 			if (neighbour->G > distanceToNeighbour)
@@ -102,8 +118,9 @@ std::list<Vector3> AutoPowderGrinder::Pathfinder::makePath(const Vector3& start,
 
 			if (!this->listContains(neighbour, heapToSearch))
 			{
-				neighbour->setH((int)Vector3::distance(*current, target));
+				neighbour->setH(Vector3::manhattanDistance(*current, target));
 				heapToSearch.push_back(neighbour);
+				std::push_heap(heapToSearch.begin(), heapToSearch.end(), AstarVector3());
 			}
 		}
 	}

@@ -110,7 +110,7 @@ bool AutoPowderGrinder::BlockManager::aimForBlock(const Block& targettedBlock)
 	Vector3 blockPosition{ targettedBlock.pos + this->getBlockCenter };
 	ViewAngles oldViewAngles{ minecraft->player->getViewAngles() };
 
-	if (Vector3::distance(blockPosition, localPosition) > apg::MAX_REACH)
+	if (Vector3::euclideanDistance(blockPosition, localPosition) > apg::MAX_REACH)
 		return false;
 
 	Vector3 deltaVector{ blockPosition - localPosition };

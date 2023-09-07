@@ -48,31 +48,31 @@ void AutoPowderGrinder::run()
 		return;
 	}
 
-	while(!GetAsyncKeyState(VK_NUMPAD0))
+	auto beginning = std::chrono::high_resolution_clock::now();
+
+	Vector3
+		start = this->minecraft->player->getBlockBelowPosition(),
+		end{ -1643, 3, 1603 };
+
+	auto path = this->pathfinder->makePath(start, end);
+
+	auto finish = std::chrono::high_resolution_clock::now();
+
+	auto duration = std::chrono::duration_cast<std::chrono::seconds>(finish - beginning);
+
+	this->minecraft->player->sendMessageToPlayer(
+		"§7Finding path took §a" + std::to_string(duration.count()) + " §7seconds   "
+	);
+
+	for (const auto& i : path)
 	{
-		Vector3
-			start = this->minecraft->player->getBlockBelowPosition(),
-			end{ 1090, 67, -1030 };
+		if (GetAsyncKeyState(VK_NUMPAD0))
+			break;
 
-		auto path = this->pathfinder->makePath(start, end);
-
-		for (const auto& i : path)
-		{
-			this->minecraft->player->sendMessageFromPlayer(
-				"/setblock " + i.toString() + " redstone_block"
-			);
-			std::this_thread::sleep_for(std::chrono::milliseconds(500));
-		}
-
-		for (const auto& i : path)
-		{
-			this->minecraft->player->sendMessageFromPlayer(
-				"/setblock " + i.toString() + " stone"
-			);
-			std::this_thread::sleep_for(std::chrono::milliseconds(500));
-		}
-
-		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+		this->minecraft->player->sendMessageFromPlayer(
+			"/setblock " + i.toString() + " lapis_block"
+		);
+		std::this_thread::sleep_for(std::chrono::milliseconds(500));
 	}
 }
 

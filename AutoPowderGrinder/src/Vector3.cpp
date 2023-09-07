@@ -7,12 +7,14 @@ Vector3::Vector3()
 
 }
 
-Vector3::Vector3(double x, double y, double z) : x(x), y(y), z(z)
+Vector3::Vector3(double x, double y, double z)
 {
-
+	this->x = (float)x;
+	this->y = (float)y;
+	this->z = (float)z;
 }
 
-double Vector3::distance(const Vector3& pos1, const Vector3& pos2)
+float Vector3::euclideanDistance(const Vector3& pos1, const Vector3& pos2)
 {
 	return 
 		sqrt(
@@ -20,6 +22,11 @@ double Vector3::distance(const Vector3& pos1, const Vector3& pos2)
 			(pos1.y - pos2.y) * (pos1.y - pos2.y) + 
 			(pos1.z - pos2.z) * (pos1.z - pos2.z)
 		);
+}
+
+float Vector3::manhattanDistance(const Vector3& pos1, const Vector3& pos2)
+{
+	return abs(pos1.x - pos2.x) + abs(pos1.y - pos2.y) + abs(pos1.z - pos2.z);
 }
 
 bool Vector3::operator==(const Vector3& other) const
@@ -78,16 +85,14 @@ std::string Vector3::toString() const
 
 void Vector3::truncate()
 {
-	this->x = static_cast<int>(this->x);
-	this->y = static_cast<int>(this->y);
-	this->z = static_cast<int>(this->z);
+	this->x = (int)this->x;
+	this->y = (int)this->y;
+	this->z = (int)this->z;
 }
 
 void Vector3::truncate2()
 {
-	this->x = static_cast<int>(this->x);
-	this->y = static_cast<int>(this->y);
-	this->z = static_cast<int>(this->z);
+	this->truncate();
 
 	if (this->x < 0) this->x--;
 	if (this->y < 0) this->y--;
