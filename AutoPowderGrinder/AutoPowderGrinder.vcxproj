@@ -160,6 +160,7 @@
     <ClCompile Include="src\AstarVector3.cpp" />
     <ClCompile Include="src\AutoPowderGrinder.cpp" />
     <ClCompile Include="src\Block.cpp" />
+    <ClCompile Include="src\Chat.cpp" />
     <ClCompile Include="src\dllmain.cpp" />
     <ClCompile Include="src\Minecraft.cpp" />
     <ClCompile Include="src\Pathfinder.cpp" />

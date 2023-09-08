@@ -48,11 +48,11 @@ void AutoPowderGrinder::run()
 		return;
 	}
 
-	auto beginning = std::chrono::high_resolution_clock::now();
+	/*auto beginning = std::chrono::high_resolution_clock::now();
 
 	Vector3
 		start = this->minecraft->player->getBlockBelowPosition(),
-		end{ -1643, 3, 1603 };
+		end{ 1188, 80, -1321 };
 
 	auto path = this->pathfinder->makePath(start, end);
 
@@ -73,6 +73,13 @@ void AutoPowderGrinder::run()
 			"/setblock " + i.toString() + " lapis_block"
 		);
 		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+	}*/
+
+	while (!GetAsyncKeyState(VK_NUMPAD0))
+	{
+		std::cout << this->minecraft->chat->getLatestChatMessage() << '\n';
+
+		std::this_thread::sleep_for(std::chrono::milliseconds(200));
 	}
 }
 

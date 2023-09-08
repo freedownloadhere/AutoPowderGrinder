@@ -123,9 +123,11 @@ namespace apg
 	public:
 		class Player;
 		class World;
+		class Chat;
 
 		std::shared_ptr<Player> player{ nullptr };
 		std::shared_ptr<World> world{ nullptr };
+		std::shared_ptr<Chat> chat{ nullptr };
 
 		Minecraft();
 		bool isInitialized();
@@ -151,8 +153,7 @@ namespace apg
 		);
 
 		bool isInitialized();
-		void sendMessageToPlayer(const std::string& message);
-		void sendMessageFromPlayer(const std::string& message);
+		
 		void updateMainInventory();
 		void updatePosition();
 		void updateViewAngles();
@@ -167,6 +168,8 @@ namespace apg
 		ViewAngles getViewAngles();
 		void leftClick();
 		void rightClick();
+		jclass getEntityPlayerSPClass();
+		jobject getMcThePlayerInstance();
 
 	private:
 		Vector3 position{ 0, 0, 0 };
@@ -178,8 +181,7 @@ namespace apg
 			EntityPlayerSPClass{ nullptr },
 			InventoryPlayerClass{ nullptr },
 			itemStackClass{ nullptr },
-			enumFacingClass{ nullptr },
-			chatCompClass{ nullptr };
+			enumFacingClass{ nullptr };
 		jobject
 			mcClassInstance{ nullptr },
 			mcThePlayerInstance{ nullptr },
@@ -188,9 +190,6 @@ namespace apg
 			mainInventoryArray{ nullptr };
 		jmethodID
 			getBlockPos{ nullptr },
-			addChatMessage{ nullptr },
-			sendChatMessage{ nullptr },
-			messageConstructor{ nullptr },
 			blockPosX{ nullptr },
 			blockPosY{ nullptr },
 			blockPosZ{ nullptr },
@@ -248,6 +247,51 @@ namespace apg
 			JNIEnv* env,
 			const jclass& mcClass,
 			const jobject& mcClassInstance
+		);
+	};
+
+	class AutoPowderGrinder::Minecraft::Chat
+	{
+	public:
+		Chat(
+			JNIEnv* env,
+			const jclass& mcClass,
+			const jobject& mcClassInstance,
+			const jclass& EntityPlayerSPClass,
+			const jobject& mcThePlayerInstance
+		);
+
+		void sendMessageToPlayer(const std::string& message);
+		void sendMessageFromPlayer(const std::string& message);
+		std::string getLatestChatMessage();
+		bool isInitialized();
+
+	private:
+		jclass
+			guiInGameClass{ nullptr },
+			guiNewChatClass{ nullptr },
+			listClass{ nullptr },
+			chatCompClass{ nullptr };
+		jobject
+			mcThePlayerInstance{ nullptr },
+			ingameGuiInstance{ nullptr },
+			guiNewChatInstance{ nullptr },
+			sentMessagesInstance{ nullptr };
+		jmethodID
+			addChatMessage{ nullptr },
+			sendChatMessage{ nullptr },
+			messageConstructor{ nullptr },
+			listSize{ nullptr },
+			listGet{ nullptr };
+
+		bool initialized{ false };
+		JNIEnv* env{ nullptr };
+		bool initialize(
+			JNIEnv* env,
+			const jclass& mcClass,
+			const jobject& mcClassInstance,
+			const jclass& EntityPlayerSPClass,
+			const jobject& mcThePlayerInstance
 		);
 	};
 

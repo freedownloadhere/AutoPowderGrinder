@@ -91,27 +91,6 @@ bool AutoPowderGrinder::Minecraft::Player::initialize(
 		return false;
 	}
 
-	this->chatCompClass = env->FindClass("fa");
-	if (this->chatCompClass == nullptr)
-	{
-		std::cout << "Failed to get chat component class!\n";
-		return false;
-	}
-
-	this->addChatMessage = env->GetMethodID(EntityPlayerSPClass, "a", "(Leu;)V");
-	if (this->addChatMessage == nullptr)
-	{
-		std::cout << "Failed to get msg function ID!\n";
-		return false;
-	}
-
-	this->messageConstructor = env->GetMethodID(chatCompClass, "<init>", "(Ljava/lang/String;)V");
-	if (this->messageConstructor == nullptr)
-	{
-		std::cout << "Failed to get constructor for ChatComp class!\n";
-		return false;
-	}
-
 	this->displayNameGetter = this->env->GetMethodID(this->itemStackClass, "q", "()Ljava/lang/String;");
 	if (this->displayNameGetter == nullptr)
 	{
@@ -231,13 +210,6 @@ bool AutoPowderGrinder::Minecraft::Player::initialize(
 		return false;
 	}
 
-	this->sendChatMessage = this->env->GetMethodID(this->EntityPlayerSPClass, "e", "(Ljava/lang/String;)V");
-	if (this->sendChatMessage == nullptr)
-	{
-		std::cout << "Could not get the sendChatMessage method\n";
-		return false;
-	}
-
 	AutoPowderGrinder::Minecraft::Player::leftClickInput[0].type = INPUT_MOUSE;
 	AutoPowderGrinder::Minecraft::Player::leftClickInput[0].mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
 	AutoPowderGrinder::Minecraft::Player::leftClickInput[1].type = INPUT_MOUSE;
@@ -284,37 +256,6 @@ ViewAngles AutoPowderGrinder::Minecraft::Player::getViewAngles()
 bool AutoPowderGrinder::Minecraft::Player::isInitialized()
 {
 	return this->initialized;
-}
-
-void AutoPowderGrinder::Minecraft::Player::sendMessageToPlayer(const std::string& message)
-{
-	jobject chatComp{ nullptr };
-	jstring text{ nullptr };
-
-	text = this->env->NewStringUTF(message.c_str());
-
-	chatComp = this->env->NewObject(chatCompClass, this->messageConstructor, text);
-	if (chatComp == nullptr)
-	{
-		std::cout << "Failed to create chat component object\n";
-		return;
-	}
-
-	this->env->CallVoidMethod(this->mcThePlayerInstance, this->addChatMessage, chatComp);
-
-	this->env->DeleteLocalRef(text);
-	this->env->DeleteLocalRef(chatComp);
-}
-
-void AutoPowderGrinder::Minecraft::Player::sendMessageFromPlayer(const std::string& message)
-{
-	jstring text{ nullptr };
-
-	text = this->env->NewStringUTF(message.c_str());
-
-	this->env->CallVoidMethod(this->mcThePlayerInstance, this->sendChatMessage, text);
-
-	this->env->DeleteLocalRef(text);
 }
 
 void AutoPowderGrinder::Minecraft::Player::updateMainInventory()
@@ -450,4 +391,14 @@ void AutoPowderGrinder::Minecraft::Player::rightClick()
 	SendInput(1, &AutoPowderGrinder::Minecraft::Player::rightClickInput[0], sizeof(INPUT));
 	std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	SendInput(1, &AutoPowderGrinder::Minecraft::Player::rightClickInput[1], sizeof(INPUT));
+}
+
+jclass AutoPowderGrinder::Minecraft::Player::getEntityPlayerSPClass()
+{
+	return this->EntityPlayerSPClass;
+}
+
+jobject AutoPowderGrinder::Minecraft::Player::getMcThePlayerInstance()
+{
+	return this->mcThePlayerInstance;
 }

@@ -68,6 +68,18 @@ bool AutoPowderGrinder::Minecraft::initialize()
 		return false;
 	}
 
+	this->chat = std::make_shared<Chat>(
+		env,
+		mcClass,
+		mcClassInstance,
+		this->player->getEntityPlayerSPClass(),
+		this->player->getMcThePlayerInstance()
+	);
+	if (!this->chat->isInitialized())
+	{
+		return false;
+	}
+
 	return true;
 }
 
