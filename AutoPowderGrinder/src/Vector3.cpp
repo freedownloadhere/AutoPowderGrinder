@@ -9,12 +9,12 @@ Vector3::Vector3()
 
 Vector3::Vector3(double x, double y, double z)
 {
-	this->x = (float)x;
-	this->y = (float)y;
-	this->z = (float)z;
+	this->x = x;
+	this->y = y;
+	this->z = z;
 }
 
-float Vector3::euclideanDistance(const Vector3& pos1, const Vector3& pos2)
+double Vector3::euclideanDistance(const Vector3& pos1, const Vector3& pos2)
 {
 	return 
 		sqrt(
@@ -24,7 +24,7 @@ float Vector3::euclideanDistance(const Vector3& pos1, const Vector3& pos2)
 		);
 }
 
-float Vector3::manhattanDistance(const Vector3& pos1, const Vector3& pos2)
+double Vector3::manhattanDistance(const Vector3& pos1, const Vector3& pos2)
 {
 	return abs(pos1.x - pos2.x) + abs(pos1.y - pos2.y) + abs(pos1.z - pos2.z);
 }

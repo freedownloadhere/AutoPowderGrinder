@@ -2,13 +2,13 @@
 
 using namespace apg;
 
-void AstarVector3::setG(float value)
+void AstarVector3::setG(double value)
 {
 	this->G = value;
 	this->F = this->G + this->H;
 }
 
-void AstarVector3::setH(float value)
+void AstarVector3::setH(double value)
 {
 	this->H = value;
 	this->F = this->G + this->H;

@@ -86,7 +86,7 @@ std::list<Vector3> AutoPowderGrinder::Pathfinder::makePath(const Vector3& start,
 		for (const auto& k : this->directionalVector)
 		{
 			std::shared_ptr<AstarVector3> neighbour{ std::make_shared<AstarVector3>(*current + k) };
-			float distanceToNeighbour = (current->y == neighbour->y ? current->G + 1 : current->G + apg::SQRT_2);
+			double distanceToNeighbour = (current->y == neighbour->y ? current->G + 1 : current->G + apg::SQRT_2);
 
 			if (!this->isWalkable(neighbour))
 				continue;

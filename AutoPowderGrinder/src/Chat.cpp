@@ -103,17 +103,17 @@ bool AutoPowderGrinder::Minecraft::Chat::initialize(
 		return false;
 	}
 
-	auto sentMessagesFieldID = this->env->GetFieldID(this->guiNewChatClass, "g", "Ljava/util/List;");
-	if (sentMessagesFieldID == nullptr)
+	auto chatLinesField = this->env->GetFieldID(this->guiNewChatClass, "h", "Ljava/util/List;");
+	if (chatLinesField == nullptr)
 	{
-		std::cout << "Could not get the sentMessages field\n";
+		std::cout << "Could not get the chatLines field\n";
 		return false;
 	}
 
-	this->sentMessagesInstance = this->env->GetObjectField(this->guiNewChatInstance, sentMessagesFieldID);
-	if (this->sentMessagesInstance == nullptr)
+	this->chatLinesInstance = this->env->GetObjectField(this->guiNewChatInstance, chatLinesField);
+	if (this->chatLinesInstance == nullptr)
 	{
-		std::cout << "Could not get the sentMessages object\n";
+		std::cout << "Could not get the chatLines object\n";
 		return false;
 	}
 
@@ -128,6 +128,27 @@ bool AutoPowderGrinder::Minecraft::Chat::initialize(
 	if (this->listSize == nullptr)
 	{
 		std::cout << "Could not get the listSize method\n";
+		return false;
+	}
+
+	this->chatLineClass = this->env->FindClass("ava");
+	if (this->chatLineClass == nullptr)
+	{
+		std::cout << "Could not get the chatLine class\n";
+		return false;
+	}
+
+	this->getChatComp = this->env->GetMethodID(this->chatLineClass, "a", "()Leu;");
+	if (this->getChatComp == nullptr)
+	{
+		std::cout << "Could not get the chat component field\n";
+		return false;
+	}
+
+	this->getUnformattedText = this->env->GetMethodID(this->chatCompClass, "c", "()Ljava/lang/String;");
+	if (this->getUnformattedText == nullptr)
+	{
+		std::cout << "Could not get the unformatted text method\n";
 		return false;
 	}
 
@@ -172,12 +193,33 @@ void AutoPowderGrinder::Minecraft::Chat::sendMessageFromPlayer(const std::string
 
 std::string AutoPowderGrinder::Minecraft::Chat::getLatestChatMessage()
 {
-	int size = this->env->CallIntMethod(this->sentMessagesInstance, this->listSize);
-
+	int size = this->env->CallIntMethod(this->chatLinesInstance, this->listSize);
 	if (size == 0)
 		return "No chat message to display";
 
-	jstring lastMessage = (jstring)this->env->CallObjectMethod(this->sentMessagesInstance, this->listGet, size - 1);
+	jobject lastChatLine = this->env->CallObjectMethod(this->chatLinesInstance, this->listGet, 0);
+	if (lastChatLine == nullptr)
+	{
+		return "lastChatLine is a nullptr";
+	}
 
-	return this->env->GetStringUTFChars(lastMessage, 0);
+	jobject chatComponent = this->env->CallObjectMethod(lastChatLine, this->getChatComp);
+	if (chatComponent == nullptr)
+	{
+		return "chatComponent is a nullptr";
+	}
+
+	jstring unformattedText = (jstring)this->env->CallObjectMethod(chatComponent, this->getUnformattedText);
+	if (unformattedText == nullptr)
+	{
+		return "unformattedText is a nullptr";
+	}
+
+	auto result = this->env->GetStringUTFChars(unformattedText, 0);
+	if (result == nullptr)
+	{
+		return "result is a nullptr";
+	}
+
+	return result;
 }

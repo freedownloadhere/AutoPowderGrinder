@@ -228,9 +228,9 @@ bool AutoPowderGrinder::Minecraft::Player::initialize(
 
 void AutoPowderGrinder::Minecraft::Player::updatePosition()
 {
-	this->position.x = this->env->GetDoubleField(this->mcThePlayerInstance, this->positionX);
-	this->position.y = this->env->GetDoubleField(this->mcThePlayerInstance, this->positionY);
-	this->position.z = this->env->GetDoubleField(this->mcThePlayerInstance, this->positionZ);
+	this->position.x = (double)this->env->GetDoubleField(this->mcThePlayerInstance, this->positionX);
+	this->position.y = (double)this->env->GetDoubleField(this->mcThePlayerInstance, this->positionY);
+	this->position.z = (double)this->env->GetDoubleField(this->mcThePlayerInstance, this->positionZ);
 }
 
 void AutoPowderGrinder::Minecraft::Player::updateViewAngles()

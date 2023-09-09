@@ -51,11 +51,11 @@ namespace apg
 
 		Vector3(double x, double y, double z);
 
-		float x{ 0 }, y{ 0 }, z{ 0 };
+		double x{ 0 }, y{ 0 }, z{ 0 };
 
-		static float euclideanDistance(const Vector3& pos1, const Vector3& pos2);
+		static double euclideanDistance(const Vector3& pos1, const Vector3& pos2);
 
-		static float manhattanDistance(const Vector3& pos1, const Vector3& pos2);
+		static double manhattanDistance(const Vector3& pos1, const Vector3& pos2);
 
 		bool operator==(const Vector3& other) const;
 
@@ -270,19 +270,22 @@ namespace apg
 		jclass
 			guiInGameClass{ nullptr },
 			guiNewChatClass{ nullptr },
+			chatLineClass{ nullptr },
 			listClass{ nullptr },
 			chatCompClass{ nullptr };
 		jobject
 			mcThePlayerInstance{ nullptr },
 			ingameGuiInstance{ nullptr },
 			guiNewChatInstance{ nullptr },
-			sentMessagesInstance{ nullptr };
+			chatLinesInstance{ nullptr };
 		jmethodID
 			addChatMessage{ nullptr },
 			sendChatMessage{ nullptr },
 			messageConstructor{ nullptr },
 			listSize{ nullptr },
-			listGet{ nullptr };
+			getUnformattedText{ nullptr },
+			listGet{ nullptr },
+			getChatComp{ nullptr };
 
 		bool initialized{ false };
 		JNIEnv* env{ nullptr };
@@ -369,15 +372,15 @@ namespace apg
 		bool initialize();
 	};
 
-	double clampAngle(double angle, float min, float max);
+	double clampAngle(double angle, double min, double max);
 
 	struct AstarVector3 : public Vector3
 	{
-		float G{ 999999 }, H{ 0 }, F{ 0 };
+		double G{ 999999 }, H{ 0 }, F{ 0 };
 		std::shared_ptr<AstarVector3> connection{ nullptr };
 
-		void setG(float value);
-		void setH(float value);
+		void setG(double value);
+		void setH(double value);
 
 		bool operator()(const std::shared_ptr<AstarVector3>& lhs, const std::shared_ptr<AstarVector3>& rhs) const;
 	};
