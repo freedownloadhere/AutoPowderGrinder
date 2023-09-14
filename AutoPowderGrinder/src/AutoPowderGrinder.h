@@ -283,7 +283,7 @@ namespace apg
 			sendChatMessage{ nullptr },
 			messageConstructor{ nullptr },
 			listSize{ nullptr },
-			getUnformattedText{ nullptr },
+			getFormattedText{ nullptr },
 			listGet{ nullptr },
 			getChatComp{ nullptr };
 

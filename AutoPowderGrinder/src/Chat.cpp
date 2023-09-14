@@ -145,8 +145,8 @@ bool AutoPowderGrinder::Minecraft::Chat::initialize(
 		return false;
 	}
 
-	this->getUnformattedText = this->env->GetMethodID(this->chatCompClass, "c", "()Ljava/lang/String;");
-	if (this->getUnformattedText == nullptr)
+	this->getFormattedText = this->env->GetMethodID(this->chatCompClass, "d", "()Ljava/lang/String;");
+	if (this->getFormattedText == nullptr)
 	{
 		std::cout << "Could not get the unformatted text method\n";
 		return false;
@@ -191,6 +191,9 @@ void AutoPowderGrinder::Minecraft::Chat::sendMessageFromPlayer(const std::string
 	this->env->DeleteLocalRef(text);
 }
 
+/// <summary>
+/// A mess to fix later (doesn't work)
+/// </summary>
 std::string AutoPowderGrinder::Minecraft::Chat::getLatestChatMessage()
 {
 	int size = this->env->CallIntMethod(this->chatLinesInstance, this->listSize);
@@ -209,17 +212,27 @@ std::string AutoPowderGrinder::Minecraft::Chat::getLatestChatMessage()
 		return "chatComponent is a nullptr";
 	}
 
-	jstring unformattedText = (jstring)this->env->CallObjectMethod(chatComponent, this->getUnformattedText);
-	if (unformattedText == nullptr)
+	jstring formattedText = (jstring)this->env->CallObjectMethod(chatComponent, this->getFormattedText);
+	if (formattedText == nullptr)
 	{
-		return "unformattedText is a nullptr";
+		return "formattedText is a nullptr";
 	}
 
-	auto result = this->env->GetStringUTFChars(unformattedText, 0);
+	auto result = this->env->GetStringChars(formattedText, 0);
 	if (result == nullptr)
 	{
 		return "result is a nullptr";
 	}
+	int resultSize = this->env->GetStringLength(formattedText);
 
-	return result;
+	for (int i = 0; i < resultSize; ++i)
+	{
+		std::wcout << (wchar_t)result[i];
+	}
+	std::wcout << '\n';
+
+	this->env->ReleaseStringChars(formattedText, result);
+
+	//return result;
+	return "debug string";
 }

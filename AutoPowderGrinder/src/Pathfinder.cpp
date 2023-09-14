@@ -48,6 +48,18 @@ bool AutoPowderGrinder::Pathfinder::isWalkable(const std::shared_ptr<AstarVector
 		);
 }
 
+void AutoPowderGrinder::Pathfinder::moveTo(const Vector3& target)
+{
+	Vector3 playerBlockBelow = this->minecraft->player->getBlockBelowPosition();
+
+	auto path = this->makePath(
+		playerBlockBelow,
+		target
+	);
+
+	this->moveThroughPath(path);
+}
+
 std::list<Vector3> AutoPowderGrinder::Pathfinder::makePath(const Vector3& start, const Vector3& target)
 {
 	this->walkableMap.clear();
@@ -120,6 +132,20 @@ void AutoPowderGrinder::Pathfinder::moveThroughPath(const std::list<Vector3>& pa
 
 	while (it2 != path.end())
 	{
+		Vector3 delta = *it2 - *it1;
 
+		// 1. MODE: MOVE TO TARGET
+
+		// turn vector into viewangles
+		// might do precalculated for the cardinal directions initially
+		//
+		// set head direction to whatever view angle we get
+		// then walk forward
+		// repeat for all deltas until destination yippie
+
+		// 2. MODE: MINE AND MOVE
+		
+		// maybe we can move from A to B like walking sideways
+		// and mining stone along the way
 	}
 }

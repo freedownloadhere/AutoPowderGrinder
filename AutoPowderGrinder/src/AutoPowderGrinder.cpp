@@ -48,39 +48,7 @@ void AutoPowderGrinder::run()
 		return;
 	}
 
-	/*auto beginning = std::chrono::high_resolution_clock::now();
-
-	Vector3
-		start = this->minecraft->player->getBlockBelowPosition(),
-		end{ 1188, 80, -1321 };
-
-	auto path = this->pathfinder->makePath(start, end);
-
-	auto finish = std::chrono::high_resolution_clock::now();
-
-	auto duration = std::chrono::duration_cast<std::chrono::seconds>(finish - beginning);
-
-	this->minecraft->player->sendMessageToPlayer(
-		"§7Finding path took §a" + std::to_string(duration.count()) + " §7seconds   "
-	);
-
-	for (const auto& i : path)
-	{
-		if (GetAsyncKeyState(VK_NUMPAD0))
-			break;
-
-		this->minecraft->player->sendMessageFromPlayer(
-			"/setblock " + i.toString() + " lapis_block"
-		);
-		std::this_thread::sleep_for(std::chrono::milliseconds(100));
-	}*/
-
-	while (!GetAsyncKeyState(VK_NUMPAD0))
-	{
-		std::cout << this->minecraft->chat->getLatestChatMessage() << '\n';
-
-		std::this_thread::sleep_for(std::chrono::milliseconds(200));
-	}
+	std::cout << "Hi, this does nothing atm :)\n";
 }
 
 double apg::clampAngle(double angle, double min, double max)
