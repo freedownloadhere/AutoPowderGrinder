@@ -145,8 +145,8 @@ bool AutoPowderGrinder::Minecraft::Chat::initialize(
 		return false;
 	}
 
-	this->getFormattedText = this->env->GetMethodID(this->chatCompClass, "d", "()Ljava/lang/String;");
-	if (this->getFormattedText == nullptr)
+	this->getUnformattedText = this->env->GetMethodID(this->chatCompClass, "c", "()Ljava/lang/String;");
+	if (this->getUnformattedText == nullptr)
 	{
 		std::cout << "Could not get the unformatted text method\n";
 		return false;
@@ -212,27 +212,13 @@ std::string AutoPowderGrinder::Minecraft::Chat::getLatestChatMessage()
 		return "chatComponent is a nullptr";
 	}
 
-	jstring formattedText = (jstring)this->env->CallObjectMethod(chatComponent, this->getFormattedText);
+	jstring formattedText = (jstring)this->env->CallObjectMethod(chatComponent, this->getUnformattedText);
 	if (formattedText == nullptr)
 	{
 		return "formattedText is a nullptr";
 	}
 
-	auto result = this->env->GetStringChars(formattedText, 0);
-	if (result == nullptr)
-	{
-		return "result is a nullptr";
-	}
-	int resultSize = this->env->GetStringLength(formattedText);
+	auto result = this->env->GetStringUTFChars(formattedText, 0);
 
-	for (int i = 0; i < resultSize; ++i)
-	{
-		std::wcout << (wchar_t)result[i];
-	}
-	std::wcout << '\n';
-
-	this->env->ReleaseStringChars(formattedText, result);
-
-	//return result;
-	return "debug string";
+	return result;
 }

@@ -48,7 +48,12 @@ void AutoPowderGrinder::run()
 		return;
 	}
 
-	std::cout << "Hi, this does nothing atm :)\n";
+	while (!GetAsyncKeyState(VK_NUMPAD0))
+	{
+		std::cout << this->minecraft->chat->getLatestChatMessage() << '\n';
+
+		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+	}
 }
 
 double apg::clampAngle(double angle, double min, double max)
