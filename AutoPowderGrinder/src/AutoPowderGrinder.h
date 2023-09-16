@@ -405,7 +405,7 @@ namespace apg
 		void setG(double value);
 		void setH(double value);
 
-		bool operator()(const std::shared_ptr<AstarVector3>& lhs, const std::shared_ptr<AstarVector3>& rhs) const;
+		bool operator()(const AstarVector3& lhs, const AstarVector3& rhs) const;
 	};
 
 	class AutoPowderGrinder::Pathfinder
@@ -452,8 +452,8 @@ namespace apg
 		std::map<Vector3, bool> walkableBlockCache;
 
 		std::vector<std::pair<Vector3, int>> makeWalkMap(const std::list<Vector3>& path);
-		bool listContains(const std::shared_ptr<AstarVector3>& element, const std::vector<std::shared_ptr<AstarVector3>>& heap);
-		bool isWalkable(const std::shared_ptr<AstarVector3>& coordinates);
+		bool listContains(const AstarVector3& element, const std::vector<AstarVector3>& heap);
+		bool isWalkable(const AstarVector3& coordinates);
 
 		bool initialized{ false };
 		bool initialize(const std::shared_ptr<Minecraft>& minecraft);

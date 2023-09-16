@@ -48,8 +48,8 @@ bool AutoPowderGrinder::Pathfinder::isInitialized()
 }
 
 bool AutoPowderGrinder::Pathfinder::listContains(
-	const std::shared_ptr<AstarVector3>& element, 
-	const std::vector<std::shared_ptr<AstarVector3>>& heap
+	const AstarVector3& element, 
+	const std::vector<AstarVector3>& heap
 )
 {
 	for (const auto& i : heap)
@@ -60,9 +60,9 @@ bool AutoPowderGrinder::Pathfinder::listContains(
 	return false;
 }
 
-bool AutoPowderGrinder::Pathfinder::isWalkable(const std::shared_ptr<AstarVector3>& coordinates)
+bool AutoPowderGrinder::Pathfinder::isWalkable(const AstarVector3& coordinates)
 {
-	Vector3 v[3] = { *coordinates, *coordinates + this->upOne, *coordinates + this->upTwo };
+	Vector3 v[3] = { coordinates, coordinates + this->upOne, coordinates + this->upTwo };
 
 	for (const auto& i : v)
 		if (!this->walkableBlockCache.contains(i))
@@ -99,14 +99,15 @@ std::list<Vector3> AutoPowderGrinder::Pathfinder::makePath(const Vector3& start,
 
 	this->walkableBlockCache.clear();
 
-	std::vector<std::shared_ptr<AstarVector3>> heapToSearch;
+	std::vector<AstarVector3> heapToSearch;
 	heapToSearch.reserve(500); // Preallocation so that small pathfinding goes faster
 
-	std::set<AstarVector3> processed;
+	std::set<Vector3> processed;
+	std::map<AstarVector3, AstarVector3> connections;
 
-	std::shared_ptr<AstarVector3> current{ std::make_shared<AstarVector3>(start) };
-	current->setG(0);
-	current->setH(Vector3::manhattanDistance(*current, target));
+	AstarVector3 current{ start };
+	current.setG(0);
+	current.setH(Vector3::manhattanDistance(current, target));
 
 	heapToSearch.emplace_back( current );
 
@@ -116,42 +117,42 @@ std::list<Vector3> AutoPowderGrinder::Pathfinder::makePath(const Vector3& start,
 
 		std::pop_heap(heapToSearch.begin(), heapToSearch.end(), AstarVector3());
 		heapToSearch.pop_back();
-		processed.insert(*current);
+		processed.insert(current);
 
-		if (*current == target)
+		if (current == target)
 		{
 			std::list<Vector3> result;
 
-			while (*current != start)
+			while (current != start)
 			{
-				result.emplace_front(current->x, current->y, current->z);
-				current = current->connection;
+				result.emplace_front(current.x, current.y, current.z);
+				current = connections[current];
 			}
-			result.emplace_front(current->x, current->y, current->z);
+			result.emplace_front(current.x, current.y, current.z);
 
 			return result;
 		}
 
 		for (const auto& k : this->directionalVector)
 		{
-			std::shared_ptr<AstarVector3> neighbour{ std::make_shared<AstarVector3>(*current + k) };
-			double distanceToNeighbour = (current->y == neighbour->y ? current->G + 1 : current->G + apg::SQRT_2);
+			AstarVector3 neighbour{ current + k };
+			double distanceToNeighbour = (current.y == neighbour.y ? current.G + 1 : current.G + apg::SQRT_2);
 
 			if (!this->isWalkable(neighbour))
 				continue;
 
-			if (processed.contains(*neighbour))
+			if (processed.contains(neighbour))
 				continue;
 
-			if (neighbour->G > distanceToNeighbour)
+			if (neighbour.G > distanceToNeighbour)
 			{
-				neighbour->setG(distanceToNeighbour);
-				neighbour->connection = current;
+				neighbour.setG(distanceToNeighbour);
+				connections[neighbour] = current;
 			}
 
 			if (!this->listContains(neighbour, heapToSearch))
 			{
-				neighbour->setH(Vector3::manhattanDistance(*current, target));
+				neighbour.setH(Vector3::manhattanDistance(current, target));
 				heapToSearch.emplace_back(neighbour);
 				std::push_heap(heapToSearch.begin(), heapToSearch.end(), AstarVector3());
 			}

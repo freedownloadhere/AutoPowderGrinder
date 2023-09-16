@@ -14,12 +14,12 @@ void AstarVector3::setH(double value)
 	this->F = this->G + this->H;
 }
 
-bool AstarVector3::operator()(const std::shared_ptr<AstarVector3>& lhs, const std::shared_ptr<AstarVector3>& rhs) const
+bool AstarVector3::operator()(const AstarVector3& lhs, const AstarVector3& rhs) const
 {
-	if (lhs->F > rhs->F)
+	if (lhs.F > rhs.F)
 		return true;
 
-	else if (lhs->F == rhs->F && lhs->H > rhs->H)
+	else if (lhs.F == rhs.F && lhs.H > rhs.H)
 		return true;
 
 	return false;
