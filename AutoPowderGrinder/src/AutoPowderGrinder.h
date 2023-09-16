@@ -400,7 +400,6 @@ namespace apg
 	struct AstarVector3 : public Vector3
 	{
 		double G{ 999999 }, H{ 0 }, F{ 0 };
-		std::shared_ptr<AstarVector3> connection{ nullptr };
 
 		void setG(double value);
 		void setH(double value);

@@ -85,7 +85,7 @@ void AutoPowderGrinder::Pathfinder::moveTo(const Vector3& target)
 	for (const auto& i : path)
 	{
 		this->minecraft->chat->sendMessageFromPlayer(
-			"/setblock " + std::to_string(i.x) + " " + std::to_string(i.y) + " " + std::to_string(i.z) + " lapis_block"
+			"/setblock " + std::to_string(i.x) + " " + std::to_string(i.y) + " " + std::to_string(i.z) + " glowstone"
 		);
 		std::this_thread::sleep_for(10ms);
 	}
@@ -136,7 +136,7 @@ std::list<Vector3> AutoPowderGrinder::Pathfinder::makePath(const Vector3& start,
 		for (const auto& k : this->directionalVector)
 		{
 			AstarVector3 neighbour{ current + k };
-			double distanceToNeighbour = (current.y == neighbour.y ? current.G + 1 : current.G + apg::SQRT_2);
+			double distanceToNeighbour = (current.y == neighbour.y ? current.G + 10 : current.G + 14);
 
 			if (!this->isWalkable(neighbour))
 				continue;
