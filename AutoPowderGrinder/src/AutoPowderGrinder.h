@@ -122,6 +122,14 @@ namespace apg
 		EAST = 5   // +x (1, 0, 0)
 	};
 
+	struct Timer
+	{
+		std::chrono::steady_clock::time_point start, end;
+
+		Timer();
+		~Timer();
+	};
+
 	class AutoPowderGrinder::Minecraft
 	{
 	public:
@@ -396,7 +404,7 @@ namespace apg
 
 		void moveTo(const Vector3& target);
 		std::list<Vector3> makePath(const Vector3& start, const Vector3& target);
-		void moveThroughPath(const std::list<Vector3>& path);
+		void traversePath(const std::list<Vector3>& path);
 
 		bool isInitialized();
 	private:

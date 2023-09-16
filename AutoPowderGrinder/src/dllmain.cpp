@@ -4,10 +4,7 @@ void MainThread(HINSTANCE instance)
 {
 	std::unique_ptr<apg::AutoPowderGrinder> myPowderGrinder = std::make_unique<apg::AutoPowderGrinder>();
 
-	while (!GetAsyncKeyState(VK_NUMPAD0))
-	{
-		myPowderGrinder->run();
-	}
+	myPowderGrinder->run();
 
 	FreeLibrary(instance);
 }
@@ -20,7 +17,7 @@ bool __stdcall DllMain(HINSTANCE instance, DWORD reason, LPVOID reserved)
 	if (reason == DLL_PROCESS_ATTACH)
 	{
 		AllocConsole();
-		//SetConsoleOutputCP(CP_UTF8);
+		//SetConsoleOutputCP(CP_UTF8);0000
 		freopen_s(&file, "CONOUT$", "w", stdout);
 
 		mainThread = std::thread(MainThread, instance);

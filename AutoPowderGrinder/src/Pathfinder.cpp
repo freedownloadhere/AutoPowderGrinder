@@ -50,6 +50,8 @@ bool AutoPowderGrinder::Pathfinder::isWalkable(const std::shared_ptr<AstarVector
 
 void AutoPowderGrinder::Pathfinder::moveTo(const Vector3& target)
 {
+	Timer timer;
+
 	Vector3 playerBlockBelow = this->minecraft->player->getBlockBelowPosition();
 
 	auto path = this->makePath(
@@ -57,7 +59,7 @@ void AutoPowderGrinder::Pathfinder::moveTo(const Vector3& target)
 		target
 	);
 
-	this->moveThroughPath(path);
+	//this->traversePath(path);
 }
 
 std::list<Vector3> AutoPowderGrinder::Pathfinder::makePath(const Vector3& start, const Vector3& target)
@@ -124,7 +126,7 @@ std::list<Vector3> AutoPowderGrinder::Pathfinder::makePath(const Vector3& start,
 	return {};
 }
 
-void AutoPowderGrinder::Pathfinder::moveThroughPath(const std::list<Vector3>& path)
+void AutoPowderGrinder::Pathfinder::traversePath(const std::list<Vector3>& path)
 {
 	std::list<Vector3>::const_iterator it1, it2;
 	it1 = path.begin();

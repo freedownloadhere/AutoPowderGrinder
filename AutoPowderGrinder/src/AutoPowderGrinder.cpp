@@ -101,12 +101,13 @@ void AutoPowderGrinder::run()
 		return;
 	}
 
-	while (!GetAsyncKeyState(VK_NUMPAD0))
-	{
-		std::cout << "Nothing here yet\n";
+	for (int i = 0; i < 10; ++i)
+		this->pathfinder->moveTo({ -1643, 3, 1600 });
 
-		std::this_thread::sleep_for(1s);
-	}
+	//while (!GetAsyncKeyState(VK_NUMPAD0))
+	//{
+	//	
+	//}
 }
 
 double apg::clampAngle(double angle, double min, double max)
