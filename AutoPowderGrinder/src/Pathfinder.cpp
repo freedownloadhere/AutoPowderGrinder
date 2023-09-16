@@ -67,13 +67,15 @@ std::list<Vector3> AutoPowderGrinder::Pathfinder::makePath(const Vector3& start,
 	this->walkableMap.clear();
 
 	std::vector<std::shared_ptr<AstarVector3>> heapToSearch;
+	heapToSearch.reserve(500); // Preallocation so that small pathfinding goes faster
+
 	std::set<AstarVector3> processed;
 
 	std::shared_ptr<AstarVector3> current{ std::make_shared<AstarVector3>(start) };
 	current->setG(0);
 	current->setH(Vector3::manhattanDistance(*current, target));
 
-	heapToSearch.push_back( current );
+	heapToSearch.emplace_back( current );
 
 	while (!heapToSearch.empty())
 	{
@@ -89,10 +91,10 @@ std::list<Vector3> AutoPowderGrinder::Pathfinder::makePath(const Vector3& start,
 
 			while (*current != start)
 			{
-				result.push_front({current->x, current->y, current->z});
+				result.emplace_front(current->x, current->y, current->z);
 				current = current->connection;
 			}
-			result.push_front({ current->x, current->y, current->z });
+			result.emplace_front(current->x, current->y, current->z);
 
 			return result;
 		}
@@ -117,7 +119,7 @@ std::list<Vector3> AutoPowderGrinder::Pathfinder::makePath(const Vector3& start,
 			if (!this->listContains(neighbour, heapToSearch))
 			{
 				neighbour->setH(Vector3::manhattanDistance(*current, target));
-				heapToSearch.push_back(neighbour);
+				heapToSearch.emplace_back(neighbour);
 				std::push_heap(heapToSearch.begin(), heapToSearch.end(), AstarVector3());
 			}
 		}
