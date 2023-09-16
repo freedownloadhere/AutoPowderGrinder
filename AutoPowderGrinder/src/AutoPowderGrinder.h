@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <jni.h>
+#include <jvmti.h>
 #include <string>
 #include <thread>
 #include <iostream>
@@ -10,6 +11,7 @@
 #include <math.h>
 #include <queue>
 #include <set>
+#include <unordered_map>
 #include <map>
 #include <random>
 #include <list>
@@ -44,6 +46,8 @@ namespace apg
 
 		bool initialize();
 	};
+
+	jclass getClass(JNIEnv* env, const std::string& path);
 
 	struct Vector3
 	{

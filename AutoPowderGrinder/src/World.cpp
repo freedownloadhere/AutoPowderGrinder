@@ -13,7 +13,9 @@ AutoPowderGrinder::Minecraft::World::World(
 	);
 
 	if (!this->initialized)
-		std::cout << "An error occured while initializing World\n";
+		std::cout << "[-] An error occured while initializing World\n";
+	else
+		std::cout << "[+] Successfully initialized World\n";
 }
 
 bool AutoPowderGrinder::Minecraft::World::initialize(
@@ -24,73 +26,73 @@ bool AutoPowderGrinder::Minecraft::World::initialize(
 {
 	this->env = env;
 
-	this->worldClientClass = this->env->FindClass("bdb");
+	this->worldClientClass = apg::getClass(this->env, "net/minecraft/client/multiplayer/WorldClient");
 	if (worldClientClass == nullptr)
 	{
-		std::cout << "Could not find the world client class\n";
+		std::cout << "	[-] Could not find the world client class\n";
 		return false;
 	}
 
-	this->blockPosClass = this->env->FindClass("cj");
+	this->blockPosClass = apg::getClass(this->env, "net/minecraft/util/BlockPos");
 	if (blockPosClass == nullptr)
 	{
-		std::cout << "Could not find the block pos class\n";
+		std::cout << "	[-] Could not find the block pos class\n";
 		return false;
 	}
 
-	this->blockClass = this->env->FindClass("afh");
+	this->blockClass = apg::getClass(this->env, "net/minecraft/block/Block");
 	if (blockClass == nullptr)
 	{
-		std::cout << "Could not find the block class\n";
+		std::cout << "	[-] Could not find the block class\n";
 		return false;
 	}
 
-	jfieldID worldFieldID = this->env->GetFieldID(mcClass, "f", "Lbdb;");
+	jfieldID worldFieldID = this->env->GetFieldID(mcClass, "field_71441_e", "Lnet/minecraft/client/multiplayer/WorldClient;");
 	if (worldFieldID == nullptr)
 	{
-		std::cout << "Could not get theWorld field ID\n";
+		std::cout << "	[-] Could not get theWorld field ID\n";
 		return false;
 	}
 
 	this->worldInstance = this->env->GetObjectField(mcClassInstance, worldFieldID);
 	if (worldInstance == nullptr)
 	{
-		std::cout << "Could not get world instance\n";
+		std::cout << "	[-] Could not get world instance\n";
 		return false;
 	}
 
-	this->getBlockState = this->env->GetMethodID(this->worldClientClass, "p", "(Lcj;)Lalz;");
+	this->getBlockState = this->env->GetMethodID(this->worldClientClass, "func_180495_p", "(Lnet/minecraft/util/BlockPos;)Lnet/minecraft/block/state/IBlockState;");
 	if (this->getBlockState == nullptr)
 	{
-		std::cout << "Could not get block state method\n";
+		std::cout << "	[-] Could not get block state method\n";
 		return false;
 	}
 
 	this->blockPosConstructor = this->env->GetMethodID(this->blockPosClass, "<init>", "(DDD)V");
 	if (this->blockPosConstructor == nullptr)
 	{
-		std::cout << "Could not get block pos constructor ID\n";
+		std::cout << "	[-] Could not get block pos constructor ID\n";
 		return false;
 	}
 
-	jclass blockStateInterface = this->env->FindClass("alz");
+	jclass blockStateInterface = apg::getClass(this->env, "net/minecraft/block/state/IBlockState");
 	if (blockStateInterface == nullptr)
 	{
-		std::cout << "Could not get the block state interface\n";
+		std::cout << "	[-] Could not get the block state interface\n";
 		return false;
 	}
 
-	this->getBlock = this->env->GetMethodID(blockStateInterface, "c", "()Lafh;");
+	this->getBlock = this->env->GetMethodID(blockStateInterface, "func_177230_c", "()Lnet/minecraft/block/Block;");
 	if (this->getBlock == nullptr)
 	{
-		std::cout << "Could not get block method\n";
+		std::cout << "	[-] Could not get block method\n";
 		return false;
 	}
 
-	this->getIDfromBlock = this->env->GetStaticMethodID(this->blockClass, "a", "(Lafh;)I");
+	this->getIDfromBlock = this->env->GetStaticMethodID(this->blockClass, "func_149682_b", "(Lnet/minecraft/block/Block;)I");
 	if (this->getIDfromBlock == nullptr)
 	{
-		std::cout << "Could not get the getIDfromBlock static method\n";
+		std::cout << "	[-] Could not get the getIDfromBlock static method\n";
 		return false;
 	}
 
