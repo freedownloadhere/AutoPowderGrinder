@@ -1,6 +1,7 @@
 #include "AutoPowderGrinder.h"
 
 using namespace apg;
+using namespace std::literals::chrono_literals;
 
 AutoPowderGrinder::Pathfinder::Pathfinder(const std::shared_ptr<Minecraft>& minecraft)
 {
@@ -13,6 +14,30 @@ AutoPowderGrinder::Pathfinder::Pathfinder(const std::shared_ptr<Minecraft>& mine
 bool AutoPowderGrinder::Pathfinder::initialize(const std::shared_ptr<Minecraft>& minecraft)
 {
 	this->minecraft = minecraft;
+
+	this->wasd[0][0].type = INPUT_KEYBOARD;
+	this->wasd[0][0].ki.wVk = 0x57;
+	this->wasd[0][1].type = INPUT_KEYBOARD;
+	this->wasd[0][1].ki.wVk = 0x57;
+	this->wasd[0][1].ki.dwFlags = KEYEVENTF_KEYUP;
+
+	this->wasd[1][0].type = INPUT_KEYBOARD;
+	this->wasd[1][0].ki.wVk = 0x41;
+	this->wasd[1][1].type = INPUT_KEYBOARD;
+	this->wasd[1][1].ki.wVk = 0x41;
+	this->wasd[1][1].ki.dwFlags = KEYEVENTF_KEYUP;
+
+	this->wasd[2][0].type = INPUT_KEYBOARD;
+	this->wasd[2][0].ki.wVk = 0x53;
+	this->wasd[2][1].type = INPUT_KEYBOARD;
+	this->wasd[2][1].ki.wVk = 0x53;
+	this->wasd[2][1].ki.dwFlags = KEYEVENTF_KEYUP;
+
+	this->wasd[3][0].type = INPUT_KEYBOARD;
+	this->wasd[3][0].ki.wVk = 0x44;
+	this->wasd[3][1].type = INPUT_KEYBOARD;
+	this->wasd[3][1].ki.wVk = 0x44;
+	this->wasd[3][1].ki.dwFlags = KEYEVENTF_KEYUP;
 
 	return true;
 }
@@ -40,18 +65,16 @@ bool AutoPowderGrinder::Pathfinder::isWalkable(const std::shared_ptr<AstarVector
 	Vector3 v[3] = { *coordinates, *coordinates + this->upOne, *coordinates + this->upTwo };
 
 	for (const auto& i : v)
-		if (!this->walkableMap.contains(i))
-			this->walkableMap[i] = !Block::nonSolid.contains(this->minecraft->world->getBlockID(i));
+		if (!this->walkableBlockCache.contains(i))
+			this->walkableBlockCache[i] = !Block::nonSolid.contains(this->minecraft->world->getBlockID(i));
 
 	return(
-		this->walkableMap[v[0]] && !this->walkableMap[v[1]] && !this->walkableMap[v[2]]
+		this->walkableBlockCache[v[0]] && !this->walkableBlockCache[v[1]] && !this->walkableBlockCache[v[2]]
 		);
 }
 
 void AutoPowderGrinder::Pathfinder::moveTo(const Vector3& target)
 {
-	Timer timer;
-
 	Vector3 playerBlockBelow = this->minecraft->player->getBlockBelowPosition();
 
 	auto path = this->makePath(
@@ -59,12 +82,22 @@ void AutoPowderGrinder::Pathfinder::moveTo(const Vector3& target)
 		target
 	);
 
-	//this->traversePath(path);
+	for (const auto& i : path)
+	{
+		this->minecraft->chat->sendMessageFromPlayer(
+			"/setblock " + std::to_string(i.x) + " " + std::to_string(i.y) + " " + std::to_string(i.z) + " lapis_block"
+		);
+		std::this_thread::sleep_for(10ms);
+	}
+
+	this->traversePath(path);
 }
 
 std::list<Vector3> AutoPowderGrinder::Pathfinder::makePath(const Vector3& start, const Vector3& target)
 {
-	this->walkableMap.clear();
+	Timer timer("makePath");
+
+	this->walkableBlockCache.clear();
 
 	std::vector<std::shared_ptr<AstarVector3>> heapToSearch;
 	heapToSearch.reserve(500); // Preallocation so that small pathfinding goes faster
@@ -128,28 +161,67 @@ std::list<Vector3> AutoPowderGrinder::Pathfinder::makePath(const Vector3& start,
 	return {};
 }
 
+std::vector<std::pair<Vector3, int>> AutoPowderGrinder::Pathfinder::makeWalkMap(const std::list<Vector3>& path)
+{
+	Timer timer("makeWalkMap");
+
+	std::list<Vector3>::const_iterator it1, it2;
+	it1 = it2 = path.begin();
+	it2++;
+
+	std::vector<std::pair<Vector3, int>> walkMap;
+	walkMap.reserve(path.size());
+
+	while (it2 != path.end() && it1 != path.end())
+	{
+		Vector3 delta{ *it2 - *it1 };
+		int deltaEquals{ 0 };
+
+		for (; deltaEquals < 6; ++deltaEquals)
+			if (delta == apg::enumFacingVec[deltaEquals])
+				break;
+
+		if (deltaEquals == 6)
+		{
+			std::cout << "[MakeWalkMap] DeltaEquals is invalid (huh?) (delta is " << delta << ")\n";
+			return {};
+		}
+
+		walkMap.emplace_back(*it1 + this->getBlockGoalpoint, deltaEquals);
+
+		it1++;
+		it2++;
+	}
+
+	walkMap.emplace_back(path.back(), 0);
+
+	return walkMap;
+}
+
 void AutoPowderGrinder::Pathfinder::traversePath(const std::list<Vector3>& path)
 {
-	std::list<Vector3>::const_iterator it1, it2;
-	it1 = path.begin();
-	it2 = it1++;
+	// Assuming that player pos = first element in path.
 
-	while (it2 != path.end())
+	const auto walkMap{ this->makeWalkMap(path) };
+
+	if (walkMap.empty())
+		return;
+
+	auto iterator = walkMap.begin();
+
+	while (iterator != walkMap.end() && !GetAsyncKeyState(VK_NUMPAD0))
 	{
-		Vector3 delta = *it2 - *it1;
+		auto distance = Vector3::euclideanDistance(this->minecraft->player->getFootPosition(), iterator->first);
 
-		// 1. MODE: MOVE TO TARGET
+		if (distance <= this->errorMargin)
+		{
+			this->minecraft->player->setViewAngles(apg::enumFacingToViewAngles[iterator->second]);
+			//SendInput(1, &this->wasd[0][0], sizeof(INPUT));
+			iterator++;
+		}
 
-		// turn vector into viewangles
-		// might do precalculated for the cardinal directions initially
-		//
-		// set head direction to whatever view angle we get
-		// then walk forward
-		// repeat for all deltas until destination yippie
-
-		// 2. MODE: MINE AND MOVE
-		
-		// maybe we can move from A to B like walking sideways
-		// and mining stone along the way
+		std::this_thread::sleep_for(10ms);
 	}
+
+	//SendInput(1, &this->wasd[0][1], sizeof(INPUT));
 }

@@ -2,16 +2,26 @@
 
 using namespace apg;
 
-Vector3::Vector3()
+//Vector3::Vector3()
+//{
+//
+//}
+
+Vector3::Vector3() : x(0), y(0), z(0)
 {
 
 }
 
-Vector3::Vector3(double x, double y, double z)
+//Vector3::Vector3(double x, double y, double z)
+//{
+//	this->x = x;
+//	this->y = y;
+//	this->z = z;
+//}
+
+Vector3::Vector3(double x, double y, double z) : x(x), y(y), z(z)
 {
-	this->x = x;
-	this->y = y;
-	this->z = z;
+
 }
 
 double Vector3::euclideanDistance(const Vector3& pos1, const Vector3& pos2)

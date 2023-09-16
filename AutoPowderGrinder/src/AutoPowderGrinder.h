@@ -111,6 +111,15 @@ namespace apg
 
 		ViewAngles operator*(int multiplier) const;
 	};
+	const ViewAngles enumFacingToViewAngles[6] =
+	{
+		{0, -90},
+		{0, 90},
+		{180, 0},
+		{0, 0},
+		{90, 0},
+		{-90, 0}
+	};
 
 	enum class EnumFacing
 	{
@@ -125,8 +134,10 @@ namespace apg
 	struct Timer
 	{
 		std::chrono::steady_clock::time_point start, end;
+		const char* topic;
 
 		Timer();
+		Timer(const char* topic);
 		~Timer();
 	};
 
@@ -425,12 +436,22 @@ namespace apg
 		};
 		const Vector3 upOne{ 0, 1, 0 };
 		const Vector3 upTwo{ 0, 2, 0 };
+		const Vector3 getBlockGoalpoint{ 0.5, 1, 0.5 };
+		const double errorMargin{ 0.3 };
+
+		/// <summary>
+		/// Lines are, in order:
+		/// W, A, S and D.
+		/// Col 0 is press, col 1 is release.
+		/// </summary>
+		INPUT wasd[4][2];
 
 		std::shared_ptr<Minecraft> minecraft{ nullptr };
 
 		std::mt19937 shuffler;
-		std::map<Vector3, bool> walkableMap;
+		std::map<Vector3, bool> walkableBlockCache;
 
+		std::vector<std::pair<Vector3, int>> makeWalkMap(const std::list<Vector3>& path);
 		bool listContains(const std::shared_ptr<AstarVector3>& element, const std::vector<std::shared_ptr<AstarVector3>>& heap);
 		bool isWalkable(const std::shared_ptr<AstarVector3>& coordinates);
 

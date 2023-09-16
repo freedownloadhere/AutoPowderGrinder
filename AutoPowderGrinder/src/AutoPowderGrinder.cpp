@@ -101,8 +101,7 @@ void AutoPowderGrinder::run()
 		return;
 	}
 
-	for (int i = 0; i < 10 && !GetAsyncKeyState(VK_NUMPAD0); ++i)
-		this->pathfinder->moveTo({ -1643, 3, 1600 });
+	this->pathfinder->moveTo({ -1643, 3, 1600 });
 
 	//while (!GetAsyncKeyState(VK_NUMPAD0))
 	//{
