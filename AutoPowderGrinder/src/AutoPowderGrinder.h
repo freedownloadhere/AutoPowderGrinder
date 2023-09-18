@@ -61,6 +61,8 @@ namespace apg
 
 		static double manhattanDistance(const Vector3& pos1, const Vector3& pos2);
 
+		static Vector3 manhattanDistanceVector(const Vector3& pos1, const Vector3& pos2);
+
 		bool operator==(const Vector3& other) const;
 
 		bool operator!=(const Vector3& other) const;

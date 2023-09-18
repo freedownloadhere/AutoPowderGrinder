@@ -2,22 +2,10 @@
 
 using namespace apg;
 
-//Vector3::Vector3()
-//{
-//
-//}
-
 Vector3::Vector3() : x(0), y(0), z(0)
 {
 
 }
-
-//Vector3::Vector3(double x, double y, double z)
-//{
-//	this->x = x;
-//	this->y = y;
-//	this->z = z;
-//}
 
 Vector3::Vector3(double x, double y, double z) : x(x), y(y), z(z)
 {
@@ -37,6 +25,15 @@ double Vector3::euclideanDistance(const Vector3& pos1, const Vector3& pos2)
 double Vector3::manhattanDistance(const Vector3& pos1, const Vector3& pos2)
 {
 	return abs(pos1.x - pos2.x) + abs(pos1.y - pos2.y) + abs(pos1.z - pos2.z);
+}
+
+Vector3 Vector3::manhattanDistanceVector(const Vector3& pos1, const Vector3& pos2)
+{
+	return Vector3(
+		abs(pos1.x - pos2.x),
+		abs(pos1.y - pos2.y),
+		abs(pos1.z - pos2.z)
+	);
 }
 
 bool Vector3::operator==(const Vector3& other) const

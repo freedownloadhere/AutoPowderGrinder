@@ -102,11 +102,6 @@ void AutoPowderGrinder::run()
 	}
 
 	this->pathfinder->moveTo({ -1643, 3, 1600 });
-
-	//while (!GetAsyncKeyState(VK_NUMPAD0))
-	//{
-	//	
-	//}
 }
 
 double apg::clampAngle(double angle, double min, double max)

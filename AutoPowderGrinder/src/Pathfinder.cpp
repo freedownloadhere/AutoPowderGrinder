@@ -188,7 +188,8 @@ std::vector<std::pair<Vector3, int>> AutoPowderGrinder::Pathfinder::makeWalkMap(
 			return {};
 		}
 
-		walkMap.emplace_back(*it1 + this->getBlockGoalpoint, deltaEquals);
+		if(walkMap.empty() || walkMap.back().second != deltaEquals)
+			walkMap.emplace_back(*it1 + this->getBlockGoalpoint, deltaEquals);
 
 		it1++;
 		it2++;
@@ -212,6 +213,8 @@ void AutoPowderGrinder::Pathfinder::traversePath(const std::list<Vector3>& path)
 
 	while (iterator != walkMap.end() && !GetAsyncKeyState(VK_NUMPAD0))
 	{
+		Timer timer("walkMap iteration");
+
 		auto distance = Vector3::euclideanDistance(this->minecraft->player->getFootPosition(), iterator->first);
 
 		if (distance <= this->errorMargin)
