@@ -101,7 +101,7 @@ void AutoPowderGrinder::run()
 		return;
 	}
 
-	this->pathfinder->moveTo({ -1643, 3, 1600 });
+	this->pathfinder->moveTo({ 0, 3, 0 });
 }
 
 double apg::clampAngle(double angle, double min, double max)

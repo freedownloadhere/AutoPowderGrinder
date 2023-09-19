@@ -13,7 +13,7 @@ AutoPowderGrinder::Minecraft::Player::Player(
 	);
 
 	if (!this->initialized)
-		std::cout << "[-] An error occured while initializing Player\n";
+		std::cout << "	[-] An error occured while initializing Player\n";
 	else
 		std::cout << "[+] Successfully initialized Player\n";
 }
@@ -31,56 +31,58 @@ bool AutoPowderGrinder::Minecraft::Player::initialize(
 	this->EntityPlayerSPClass = apg::getClass(this->env, "net/minecraft/client/entity/EntityPlayerSP");
 	if (this->EntityPlayerSPClass == nullptr)
 	{
-		std::cout << "	[-] Failed to get class EntityPlayerSP\n";
+		std::cout << "[-] Failed to get class EntityPlayerSP\n";
 		return false;
 	}
 
 	jfieldID playerFieldID{ this->env->GetFieldID(mcClass, "field_71439_g", "Lnet/minecraft/client/entity/EntityPlayerSP;") };
 	if (playerFieldID == nullptr)
 	{
-		std::cout << "	[-] Failed to get object field ID thePlayer\n";
+		std::cout << "[-] Failed to get object field ID thePlayer\n";
 		return false;
 	}
 
 	this->mcThePlayerInstance = this->env->GetObjectField(mcClassInstance, playerFieldID);
 	if (this->mcThePlayerInstance == nullptr)
 	{
-		std::cout << "	[-] Failed to get object field thePlayer\n";
+		std::cout << "[-] Failed to get object field thePlayer\n";
+		std::cout << "[INFO] Are you currently in a world?\n";
+		std::cout << "[INFO] The player object cannot be fetched if not in-game.\n";
 		return false;
 	}
 
 	this->InventoryPlayerClass = apg::getClass(this->env, "net/minecraft/entity/player/InventoryPlayer");
 	if (this->InventoryPlayerClass == nullptr)
 	{
-		std::cout << "	[-] Failed to get class InventoryPlayer\n";
+		std::cout << "[-] Failed to get class InventoryPlayer\n";
 		return false;
 	}
 
 	jfieldID inventoryID{ this->env->GetFieldID(EntityPlayerSPClass, "field_71071_by", "Lnet/minecraft/entity/player/InventoryPlayer;") };
 	if (inventoryID == nullptr)
 	{
-		std::cout << "	[-] Failed to get inventory field ID!\n";
+		std::cout << "[-] Failed to get inventory field ID!\n";
 		return false;
 	}
 
 	this->inventoryInstance = this->env->GetObjectField(mcThePlayerInstance, inventoryID);
 	if (inventoryInstance == nullptr)
 	{
-		std::cout << "	[-] Failed to get object field inventory\n";
+		std::cout << "[-] Failed to get object field inventory\n";
 		return false;
 	}
 
 	jfieldID mainInventoryFieldID = this->env->GetFieldID(this->InventoryPlayerClass, "field_70462_a", "[Lnet/minecraft/item/ItemStack;");
 	if (mainInventoryFieldID == nullptr)
 	{
-		std::cout << "	[-] Could not get main inventory field ID\n";
+		std::cout << "[-] Could not get main inventory field ID\n";
 		return false;
 	}
 
 	jobject mainInventoryObj = this->env->GetObjectField(this->inventoryInstance, mainInventoryFieldID);
 	if (mainInventoryObj == nullptr)
 	{
-		std::cout << "	[-] Could not get main inventory array object\n";
+		std::cout << "[-] Could not get main inventory array object\n";
 		return false;
 	}
 
@@ -89,133 +91,133 @@ bool AutoPowderGrinder::Minecraft::Player::initialize(
 	this->itemStackClass = apg::getClass(this->env, "net/minecraft/item/ItemStack");
 	if (this->itemStackClass == nullptr)
 	{
-		std::cout << "	[-] Could not find class itemStack\n";
+		std::cout << "[-] Could not find class itemStack\n";
 		return false;
 	}
 
 	this->displayNameGetter = this->env->GetMethodID(this->itemStackClass, "func_82833_r", "()Ljava/lang/String;");
 	if (this->displayNameGetter == nullptr)
 	{
-		std::cout << "	[-] Could not get the display name getter method\n";
+		std::cout << "[-] Could not get the display name getter method\n";
 		return false;
 	}
 
 	this->positionX = this->env->GetFieldID(this->EntityPlayerSPClass, "field_70165_t", "D");
 	if (this->positionX == nullptr)
 	{
-		std::cout << "	[-] Could not get player X position field ID\n";
+		std::cout << "[-] Could not get player X position field ID\n";
 		return false;
 	}
 
 	this->positionY = this->env->GetFieldID(this->EntityPlayerSPClass, "field_70163_u", "D");
 	if (this->positionY == nullptr)
 	{
-		std::cout << "	[-] Could not get player Y position field ID\n";
+		std::cout << "[-] Could not get player Y position field ID\n";
 		return false;
 	}
 
 	this->positionZ = this->env->GetFieldID(this->EntityPlayerSPClass, "field_70161_v", "D");
 	if (this->positionZ == nullptr)
 	{
-		std::cout << "	[-] Could not get player Z position field ID\n";
+		std::cout << "[-] Could not get player Z position field ID\n";
 		return false;
 	}
 
 	this->yawField = this->env->GetFieldID(this->EntityPlayerSPClass, "field_70177_z", "F");
 	if (this->yawField == nullptr)
 	{
-		std::cout << "	[-] Could not get player yaw field\n";
+		std::cout << "[-] Could not get player yaw field\n";
 		return false;
 	}
 
 	this->pitchField = this->env->GetFieldID(this->EntityPlayerSPClass, "field_70125_A", "F");
 	if (this->pitchField == nullptr)
 	{
-		std::cout << "	[-] Could not get player yaw field\n";
+		std::cout << "[-] Could not get player yaw field\n";
 		return false;
 	}
 
 	jclass movingObjectPositionClass = apg::getClass(this->env, "net/minecraft/util/MovingObjectPosition");
 	if (movingObjectPositionClass == nullptr)
 	{
-		std::cout << "	[-] Could not get the objectMouseOver class\n";
+		std::cout << "[-] Could not get the objectMouseOver class\n";
 		return false;
 	}
 
 	this->objectMouseOver = this->env->GetFieldID(this->mcClass, "field_71476_x", "Lnet/minecraft/util/MovingObjectPosition;");
 	if (objectMouseOver == nullptr)
 	{
-		std::cout << "	[-] Could not get the objectMouseOver minecraft class field\n";
+		std::cout << "[-] Could not get the objectMouseOver minecraft class field\n";
 		return false;
 	}
 
 	jclass blockPosClass = apg::getClass(this->env, "net/minecraft/util/BlockPos");
 	if (blockPosClass == nullptr)
 	{
-		std::cout << "	[-] Could not get block pos class\n";
+		std::cout << "[-] Could not get block pos class\n";
 		return false;
 	}
 
 	this->getBlockPos = this->env->GetMethodID(movingObjectPositionClass, "func_178782_a", "()Lnet/minecraft/util/BlockPos;");
 	if (this->getBlockPos == nullptr)
 	{
-		std::cout << "	[-] Could not get the getBlockPos method\n";
+		std::cout << "[-] Could not get the getBlockPos method\n";
 		return false;
 	}
 
 	this->blockPosX = this->env->GetMethodID(blockPosClass, "func_177958_n", "()I");
 	if (this->blockPosX == nullptr)
 	{
-		std::cout << "	[-] Could not get the getX block pos method\n";
+		std::cout << "[-] Could not get the getX block pos method\n";
 		return false;
 	}
 
 	this->blockPosY = this->env->GetMethodID(blockPosClass, "func_177956_o", "()I");
 	if (this->blockPosY == nullptr)
 	{
-		std::cout << "	[-] Could not get the getY block pos method\n";
+		std::cout << "[-] Could not get the getY block pos method\n";
 		return false;
 	}
 
 	this->blockPosZ = this->env->GetMethodID(blockPosClass, "func_177952_p", "()I");
 	if (this->blockPosZ == nullptr)
 	{
-		std::cout << "	[-] Could not get the getZ block pos method\n";
+		std::cout << "[-] Could not get the getZ block pos method\n";
 		return false;
 	}
 
 	jclass entityClass = apg::getClass(this->env, "net/minecraft/entity/Entity");
 	if (entityClass == nullptr)
 	{
-		std::cout << "	[-] Could not get the Entity class\n";
+		std::cout << "[-] Could not get the Entity class\n";
 		return false;
 	}
 
 	this->setRotation = this->env->GetMethodID(entityClass, "func_70101_b", "(FF)V");
 	if (this->setRotation == nullptr)
 	{
-		std::cout << "	[-] Could not get the setRotation method\n";
+		std::cout << "[-] Could not get the setRotation method\n";
 		return false;
 	}
 
 	this->enumFacingClass = apg::getClass(this->env, "net/minecraft/util/EnumFacing");
 	if (this->enumFacingClass == nullptr)
 	{
-		std::cout << "	[-] Could not get the enumFacing class\n";
+		std::cout << "[-] Could not get the enumFacing class\n";
 		return false;
 	}
 
 	this->getHorizontalFacing = this->env->GetMethodID(this->EntityPlayerSPClass, "func_174811_aO", "()Lnet/minecraft/util/EnumFacing;");
 	if (this->getHorizontalFacing == nullptr)
 	{
-		std::cout << "	[-] Could not get the getHorizontalFacing method\n";
+		std::cout << "[-] Could not get the getHorizontalFacing method\n";
 		return false;
 	}
 
 	this->getEnumFacingIndex = this->env->GetMethodID(this->enumFacingClass, "func_176745_a", "()I");
 	if (this->getEnumFacingIndex == nullptr)
 	{
-		std::cout << "	[-] Could not get the enumfacing getIndex method\n";
+		std::cout << "[-] Could not get the enumfacing getIndex method\n";
 		return false;
 	}
 

@@ -7,7 +7,7 @@ AutoPowderGrinder::Minecraft::Minecraft()
 	this->initialized = this->initialize();
 
 	if (!this->initialized)
-		std::cout << "[-] An error occured while initializing Minecraft\n";
+		std::cout << "	[-] An error occured while initializing Minecraft\n";
 	else
 		std::cout << "[+] Successfully initialized Minecraft\n";
 }
@@ -18,35 +18,36 @@ bool AutoPowderGrinder::Minecraft::initialize()
 
 	if (JNI_GetCreatedJavaVMs(&jvm, 1, nullptr) != 0)
 	{
-		std::cout << "	[-] Failed to get created Java VMs!\n";
+		std::cout << "[-] Failed to get created Java VMs!\n";
 		return false;
 	}
 
 	jvm->AttachCurrentThread((void**)&this->env, nullptr);
 	if (this->env == nullptr)
 	{
-		std::cout << "	[-] Failed to attach current JVM thread!\n";
+		std::cout << "[-] Failed to attach current JVM thread!\n";
 		return false;
 	}
 
 	this->mcClass = apg::getClass(this->env, "net/minecraft/client/Minecraft");
 	if (this->mcClass == nullptr)
 	{
-		std::cout << "	[-] Failed to find class Minecraft!\n";
+		std::cout << "[-] Failed to find class Minecraft!\n";
+		std::cout << "[INFO] Are you using MC Forge 1.8.9?\n";
 		return false;
 	}
 
 	jfieldID fieldID{ env->GetStaticFieldID(this->mcClass, "field_71432_P", "Lnet/minecraft/client/Minecraft;") };
 	if (fieldID == nullptr)
 	{
-		std::cout << "	[-] Failed to get static field ID theMinecraft!\n";
+		std::cout << "[-] Failed to get static field ID theMinecraft!\n";
 		return false;
 	}
 
 	this->mcClassInstance = env->GetStaticObjectField(this->mcClass, fieldID);
 	if (this->mcClassInstance == nullptr)
 	{
-		std::cout << "	[-] Failed to get static object field theMinecraft!\n";
+		std::cout << "[-] Failed to get static object field theMinecraft!\n";
 		return false;
 	}
 

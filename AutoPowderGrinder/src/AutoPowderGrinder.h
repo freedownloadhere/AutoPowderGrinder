@@ -22,7 +22,6 @@ namespace apg
 {
 	constexpr double TO_RADIANS{ 57.29578049044297 }; // Pi over 180.
 	constexpr int MAX_REACH{ 4 };
-	constexpr double SQRT_2{ 1.414213 };
 
 	class AutoPowderGrinder
 	{
