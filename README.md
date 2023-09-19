@@ -1,4 +1,6 @@
-# AutoPowderGrinder (NOT FUNCTIONAL YET!!)
+# AutoPowderGrinder (Not functional yet!!)
+
+This is meant to be injected in Minecraft 1.8.9 Forge!
 
 A C++ project dedicated to automating the task of powder grinding in Hypixel Skyblock.
 
